@@ -202,10 +202,10 @@ class CameraController(
 
     @RequiresPermission(android.Manifest.permission.CAMERA)
     fun openCamera() {
+        val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         startBackgroundThread()
         setUpCameraOutputs(textureView.width, textureView.height)
         configureTransform(textureView.width, textureView.height)
-        val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             // Wait for camera to open - 2.5 seconds is sufficient
             if (!cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
@@ -276,24 +276,17 @@ class CameraController(
                 object : CameraCaptureSession.StateCallback() {
 
                     override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-                        // The camera is already closed
-                        if (cameraDevice == null) return
+                        val camera = cameraDevice ?: return
 
                         // When the session is ready, we start displaying the preview.
                         captureSession = cameraCaptureSession
                         try {
-                            // Auto focus should be continuous for camera preview.
-                            previewRequestBuilder.set(
-                                CaptureRequest.CONTROL_AF_MODE,
-                                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-                            )
+
+                            previewRequestBuilder.setFocalDistanceToInfinity()
 
                             // Finally, we start displaying the camera preview.
                             previewRequest = previewRequestBuilder.build()
-                            captureSession?.setRepeatingRequest(
-                                previewRequest,
-                                captureCallback, backgroundHandler
-                            )
+                            captureSession?.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler)
                         } catch (e: CameraAccessException) {
                             Log.e(tag, e.toString())
                         }
@@ -360,9 +353,8 @@ class CameraController(
 
     private fun captureStillPicture() {
         try {
-            val camera = cameraDevice
-            val surface = imageReader?.surface
-            if (camera == null || surface == null) return
+            val camera = cameraDevice ?: return
+            val surface = imageReader?.surface?: return
 
             // This is the CaptureRequest.Builder that we use to take a picture.
             val captureBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
@@ -377,8 +369,9 @@ class CameraController(
                         (activity.windowManager.defaultDisplay.deviceOrientation + sensorOrientation + 270) % 360
 
                     set(CaptureRequest.JPEG_ORIENTATION, jpegOrientation)
+
                     // Use the same AE and AF modes as the preview.
-                    set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+                    setFocalDistanceToInfinity()
                 }
 
             val captureCallback = object : CameraCaptureSession.CaptureCallback() {
