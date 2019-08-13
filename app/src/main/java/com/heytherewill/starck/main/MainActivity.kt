@@ -5,25 +5,39 @@ import android.graphics.BitmapFactory
 import android.media.Image
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Range
 import androidx.appcompat.app.AppCompatActivity
-import com.heytherewill.starck.R
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.heytherewill.starck.extensions.checkCameraPermission
 import com.heytherewill.starck.extensions.requestCameraPermission
 import kotlinx.android.synthetic.main.activity_main.*
+import android.provider.MediaStore.Images
+import android.R.attr.description
+import android.content.ContentValues
+import androidx.exifinterface.media.ExifInterface
+import com.heytherewill.starck.R
+import kotlin.math.pow
 
-class MainActivity : AppCompatActivity() {
 
+class MainActivity : AppCompatActivity(), CameraController.CameraControllerListener {
+
+    private lateinit var viewModel: MainViewModel
     private lateinit var cameraController: CameraController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        cameraController = CameraController(this, cameraPreview, this::onImageTaken)
+        viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        cameraController = CameraController(this, this, cameraPreview)
 
-        cameraShutter.setOnClickListener {
-            cameraController.startCapture()
-        }
+        viewModel.aperture.observe(this, Observer(cameraController::setAperture))
+        viewModel.shutterSpeed.observe(this, Observer(cameraController::setShutterSpeed))
+        viewModel.sensorSensitivity.observe(this, Observer(cameraController::setSensorSensitivity))
+
+        cameraShutter.setOnClickListener { cameraController.startCapture() }
+        arrow.setOnClickListener { CameraOptionsBottomSheetFragment().show(supportFragmentManager, "BottomSheet") }
     }
 
     override fun onResume() {
@@ -56,16 +70,22 @@ class MainActivity : AppCompatActivity() {
         cameraController.openCamera()
     }
 
-    private fun onImageTaken(image: Image) {
+    override fun onImageTaken(image: Image) {
         val buffer = image.planes[0].buffer
         val bytes = ByteArray(buffer.capacity())
         buffer.get(bytes)
         val bitmapImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
-        MediaStore.Images.Media.insertImage(
+        val path = Images.Media.insertImage(
             contentResolver,
             bitmapImage,
             "Image Stack",
             "Created with Starck"
         )
+    }
+
+    override fun onCameraCharacteristicsInitialized(sensitivityRange: Range<Int>, shutterSpeedRange: Range<Long>, validApertures: FloatArray) {
+        viewModel.setShutterSpeedRange(shutterSpeedRange)
+        viewModel.setSensorSensitivityRange(sensitivityRange)
+        viewModel.setApertureRange(validApertures)
     }
 }
