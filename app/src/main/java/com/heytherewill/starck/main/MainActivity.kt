@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.media.Image
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Range
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -13,11 +12,7 @@ import com.heytherewill.starck.extensions.checkCameraPermission
 import com.heytherewill.starck.extensions.requestCameraPermission
 import kotlinx.android.synthetic.main.activity_main.*
 import android.provider.MediaStore.Images
-import android.R.attr.description
-import android.content.ContentValues
-import androidx.exifinterface.media.ExifInterface
 import com.heytherewill.starck.R
-import kotlin.math.pow
 
 
 class MainActivity : AppCompatActivity(), CameraController.CameraControllerListener {
@@ -36,7 +31,7 @@ class MainActivity : AppCompatActivity(), CameraController.CameraControllerListe
         viewModel.shutterSpeed.observe(this, Observer(cameraController::setShutterSpeed))
         viewModel.sensorSensitivity.observe(this, Observer(cameraController::setSensorSensitivity))
 
-        cameraShutter.setOnClickListener { cameraController.startCapture() }
+        cameraShutter.setOnClickListener { cameraController.captureImage() }
         arrow.setOnClickListener { CameraOptionsBottomSheetFragment().show(supportFragmentManager, "BottomSheet") }
     }
 
@@ -75,7 +70,7 @@ class MainActivity : AppCompatActivity(), CameraController.CameraControllerListe
         val bytes = ByteArray(buffer.capacity())
         buffer.get(bytes)
         val bitmapImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
-        val path = Images.Media.insertImage(
+        Images.Media.insertImage(
             contentResolver,
             bitmapImage,
             "Image Stack",

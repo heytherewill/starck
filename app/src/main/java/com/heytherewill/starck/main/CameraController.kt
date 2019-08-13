@@ -24,14 +24,16 @@ import kotlin.math.max
 
 private const val maxPreviewWidth = 1920
 private const val maxPreviewHeight = 1080
+private const val maxPreviewShutterSpeed = 70000000L
+
+private const val tag = "CameraController"
+private const val cameraControllerThreadName = "CameraBackground"
 
 class CameraController(
     private val activity: Activity,
     private val listener: CameraControllerListener,
     private val textureView: CameraPreviewTextureView
 ) {
-    private var state: CameraState = CameraState.Preview
-
     private var aperture: Float? = null
     private var sensorSensitivity: Int? = null
     private var shutterSpeed: Long? = null
@@ -73,29 +75,6 @@ class CameraController(
 
         override fun onError(cameraDevice: CameraDevice, error: Int) {
             onDisconnected(cameraDevice)
-        }
-    }
-
-    private val captureCallback = object : CameraCaptureSession.CaptureCallback() {
-
-        override fun onCaptureProgressed(
-            session: CameraCaptureSession,
-            request: CaptureRequest,
-            partialResult: CaptureResult
-        ) {
-            if (state is CameraState.WaitingLock) {
-                captureStillPicture()
-            }
-        }
-
-        override fun onCaptureCompleted(
-            session: CameraCaptureSession,
-            request: CaptureRequest,
-            result: TotalCaptureResult
-        ) {
-            if (state is CameraState.WaitingLock) {
-                captureStillPicture()
-            }
         }
     }
 
@@ -220,7 +199,7 @@ class CameraController(
     }
 
     private fun startBackgroundThread() {
-        backgroundThread = HandlerThread("CameraBackground").also { it.start() }
+        backgroundThread = HandlerThread(cameraControllerThreadName).also { it.start() }
         backgroundHandler = Handler(backgroundThread?.looper)
     }
 
@@ -259,7 +238,7 @@ class CameraController(
 
     private fun reloadPreview() {
         previewRequestBuilder?.apply {
-            captureSession?.setRepeatingRequest(build(), captureCallback, null)
+            captureSession?.setRepeatingRequest(build(), null, backgroundHandler)
         }
     }
 
@@ -284,13 +263,11 @@ class CameraController(
 
                         captureSession = cameraCaptureSession
                         try {
-                            previewRequestBuilder.setFocalDistanceToInfinity()
-                            aperture?.let(previewRequestBuilder::setAperture)
-                            shutterSpeed?.let(previewRequestBuilder::setShutterSpeed)
-                            sensorSensitivity?.let(previewRequestBuilder::setSensorSensitivity)
+
+                            prepareRequestBuilder(previewRequestBuilder, true)
 
                             val previewRequest = previewRequestBuilder.build()
-                            captureSession?.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler)
+                            captureSession?.setRepeatingRequest(previewRequest, null, backgroundHandler)
 
                             this@CameraController.previewRequest = previewRequest
                             this@CameraController.previewRequestBuilder = previewRequestBuilder
@@ -306,6 +283,17 @@ class CameraController(
         } catch (e: CameraAccessException) {
             Log.e(tag, e.toString())
         }
+    }
+
+    private fun prepareRequestBuilder(captureRequestBuilder: CaptureRequest.Builder, preparingForPreview: Boolean) {
+        captureRequestBuilder.setFocalDistanceToInfinity()
+        aperture?.let(captureRequestBuilder::setAperture)
+        shutterSpeed?.let{ shutterSpeed ->
+            val maxValidShutterSpeed = if (preparingForPreview) maxPreviewShutterSpeed else shutterSpeed
+            val shutterSpeedForPreview = max(shutterSpeed, maxValidShutterSpeed)
+            captureRequestBuilder.setShutterSpeed(shutterSpeedForPreview)
+        }
+        sensorSensitivity?.let(captureRequestBuilder::setSensorSensitivity)
     }
 
     fun configureTransform(viewWidth: Int, viewHeight: Int) {
@@ -330,28 +318,14 @@ class CameraController(
         textureView.setTransform(matrix)
     }
 
-    fun startCapture() {
-        val previewRequestBuilder = previewRequestBuilder ?: return
-
-        try {
-            state = CameraState.WaitingLock
-            captureSession?.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler)
-        } catch (e: CameraAccessException) {
-            Log.e(tag, e.toString())
-        }
-    }
-
-    private fun captureStillPicture() {
-
-        state = CameraState.PictureTaken
+    fun captureImage() {
 
         try {
             val camera = cameraDevice ?: return
             val surface = imageReader?.surface?: return
-            val previewRequestBuilder = previewRequestBuilder ?: return
 
             // This is the CaptureRequest.Builder that we use to take a picture.
-            val captureBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL)
+            val captureBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
                 .apply {
                     addTarget(surface)
 
@@ -363,12 +337,8 @@ class CameraController(
                         (activity.windowManager.defaultDisplay.deviceOrientation + sensorOrientation + 270) % 360
 
                     set(CaptureRequest.JPEG_ORIENTATION, jpegOrientation)
-
-                    // Use the same AE and AF modes as the preview.
-                    setFocalDistanceToInfinity()
-                    aperture?.let(previewRequestBuilder::setAperture)
-                    shutterSpeed?.let(previewRequestBuilder::setShutterSpeed)
-                    sensorSensitivity?.let(previewRequestBuilder::setSensorSensitivity)
+                    
+                    prepareRequestBuilder(this, false)
                 }
 
             val captureCallback = object : CameraCaptureSession.CaptureCallback() {
@@ -377,33 +347,28 @@ class CameraController(
                     request: CaptureRequest,
                     result: TotalCaptureResult
                 ) {
-                    unlockFocus()
+                    resumePreview()
                 }
             }
 
             captureSession?.apply {
                 stopRepeating()
                 abortCaptures()
-                capture(captureBuilder.build(), captureCallback, null)
+                capture(captureBuilder.build(), captureCallback, backgroundHandler)
             }
         } catch (e: CameraAccessException) {
             Log.e(tag, e.toString())
         }
     }
 
-    private fun unlockFocus() {
+    private fun resumePreview() {
         val previewRequest = previewRequest ?: return
 
         try {
-            state = CameraState.Preview
-            captureSession?.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler)
+            captureSession?.setRepeatingRequest(previewRequest, null, backgroundHandler)
         } catch (e: CameraAccessException) {
             Log.e(tag, e.toString())
         }
-    }
-
-    companion object {
-        const val tag = "CameraController"
     }
 
     interface CameraControllerListener {
