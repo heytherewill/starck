@@ -6,5 +6,5 @@
     <color name="primaryDarkColor">#000000</color>
     <color name="primaryTextColor">#ffffff</color>
     <color name="secondaryTextColor">#ffffff</color>
-    <color name="shutterBar">#1E1E1E</color>
+    <color name="shutterBar">#000000</color>
 </resources>
