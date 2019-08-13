@@ -72,49 +72,15 @@ class CameraController(
     }
 
     private val captureCallback = object : CameraCaptureSession.CaptureCallback() {
-        private fun process(result: CaptureResult) {
-            when (state) {
-                is CameraState.Preview -> Unit
-                is CameraState.WaitingLock -> capturePicture(result)
-                is CameraState.WaitingPreCapture -> {
-                    if (result.autoExposureIsInPreCaptureState) {
-                        state = CameraState.WaitingNonPreCapture
-                    }
-                }
-                is CameraState.WaitingNonPreCapture -> {
-                    if (result.autoExposureIsInCaptureState) {
-                        state = CameraState.PictureTaken
-                        captureStillPicture()
-                    }
-                }
-            }
-        }
-
-        private fun capturePicture(result: CaptureResult) {
-            val afState = result.get(CaptureResult.CONTROL_AF_STATE)
-            if (afState == null) {
-                captureStillPicture()
-                return
-            }
-
-            if (afState != CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED && afState != CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED)
-                return
-
-            val aeState = result.get(CaptureResult.CONTROL_AE_STATE)
-            if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
-                state = CameraState.PictureTaken
-                captureStillPicture()
-            } else {
-                runPrecaptureSequence()
-            }
-        }
 
         override fun onCaptureProgressed(
             session: CameraCaptureSession,
             request: CaptureRequest,
             partialResult: CaptureResult
         ) {
-            process(partialResult)
+            if (state is CameraState.WaitingLock) {
+                captureStillPicture()
+            }
         }
 
         override fun onCaptureCompleted(
@@ -122,7 +88,9 @@ class CameraController(
             request: CaptureRequest,
             result: TotalCaptureResult
         ) {
-            process(result)
+            if (state is CameraState.WaitingLock) {
+                captureStillPicture()
+            }
         }
     }
 
@@ -339,17 +307,9 @@ class CameraController(
 
     }
 
-    private fun runPrecaptureSequence() {
-        try {
-            previewRequestBuilder.trigger()
+    private fun captureStillPicture() {
 
-            state = CameraState.WaitingPreCapture
-            captureSession?.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler)
-        } catch (e: CameraAccessException) {
-            Log.e(tag, e.toString())
-        }
-
-    }
+        state = CameraState.PictureTaken
 
     private fun captureStillPicture() {
         try {
@@ -395,11 +355,8 @@ class CameraController(
     }
 
     private fun unlockFocus() {
-        try {
-            previewRequestBuilder.unlockFocus()
-            captureSession?.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler)
 
-            // After this, the camera will go back to the normal state of preview.
+        try {
             state = CameraState.Preview
             captureSession?.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler)
         } catch (e: CameraAccessException) {
