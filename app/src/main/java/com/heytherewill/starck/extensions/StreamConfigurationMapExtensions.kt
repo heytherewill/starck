@@ -6,12 +6,12 @@ import android.hardware.camera2.params.StreamConfigurationMap
 import android.util.Log
 import android.util.Size
 import com.heytherewill.starck.main.CameraController
-import java.lang.Long
 import java.util.*
+import java.lang.Long.signum
 
 val StreamConfigurationMap.largestOutputSize: Size
     get() = Collections.max(
-        Arrays.asList(*this.getOutputSizes(ImageFormat.JPEG)),
+        listOf(*this.getOutputSizes(ImageFormat.JPEG)),
         CompareSizesByArea()
     )
 
@@ -57,6 +57,6 @@ fun StreamConfigurationMap.chooseOptimalPreviewSize(
 
 class CompareSizesByArea : Comparator<Size> {
     override fun compare(lhs: Size, rhs: Size) =
-        Long.signum(lhs.width.toLong() * lhs.height - rhs.width.toLong() * rhs.height)
+        signum(lhs.width.toLong() * lhs.height - rhs.width.toLong() * rhs.height)
 
 }
