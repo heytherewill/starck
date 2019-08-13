@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:background="@color/primaryColor"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_behavior="com.heytherewill.starck.main.CameraOptionsBottomSheetBehavior"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+    <ImageView
+            android:id="@+id/iso"
+            android:src="@drawable/iso"
+            android:padding="12dp"
+            android:layout_width="@dimen/cameraConfigurationIcon"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+
+    <TextView
+            android:id="@+id/isoDisplay"
+            android:textColor="@android:color/white"
+            android:src="@drawable/iso"
+            tools:text="3200"
+            android:gravity="center"
+            android:layout_width="50dp"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            app:layout_constraintTop_toTopOf="@+id/iso"
+            app:layout_constraintStart_toEndOf="@+id/iso" />
+
+    <SeekBar
+            android:id="@+id/isoSlider"
+            android:max="10"
+            android:layout_width="0dp"
+            android:layout_marginTop="18dp"
+            android:layout_height="wrap_content"
+            android:thumbTint="@color/colorAccent"
+            android:progressTint="@color/colorAccent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/iso"
+            app:layout_constraintStart_toEndOf="@+id/isoDisplay" />
+
+    <ImageView
+            android:id="@+id/shutterSpeed"
+            android:src="@drawable/shutter_speed"
+            android:padding="12dp"
+            android:layout_width="@dimen/cameraConfigurationIcon"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/iso"/>
+
+
+    <TextView
+            android:id="@+id/shutterSpeedDisplay"
+            android:textColor="@android:color/white"
+            android:src="@drawable/iso"
+            tools:text="3200"
+            android:gravity="center"
+            android:layout_width="50dp"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            app:layout_constraintTop_toTopOf="@+id/shutterSpeed"
+            app:layout_constraintStart_toEndOf="@+id/shutterSpeed" />
+
+    <SeekBar
+            android:id="@+id/shutterSpeedSlider"
+            android:layout_width="0dp"
+            android:layout_marginTop="18dp"
+            android:layout_height="wrap_content"
+            android:thumbTint="@color/colorAccent"
+            android:progressTint="@color/colorAccent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/shutterSpeed"
+            app:layout_constraintStart_toEndOf="@+id/shutterSpeedDisplay" />
+
+    <ImageView
+            android:id="@+id/aperture"
+            android:src="@drawable/aperture"
+            android:padding="12dp"
+            android:layout_width="@dimen/cameraConfigurationIcon"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/shutterSpeed"/>
+
+    <TextView
+            android:id="@+id/apertureDisplay"
+            android:textColor="@android:color/white"
+            android:src="@drawable/iso"
+            tools:text="3200"
+            android:gravity="center"
+            android:layout_width="50dp"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            app:layout_constraintTop_toTopOf="@+id/aperture"
+            app:layout_constraintStart_toEndOf="@+id/aperture" />
+
+    <SeekBar
+            android:id="@+id/apertureSlider"
+            android:layout_width="0dp"
+            android:layout_marginTop="18dp"
+            android:layout_height="wrap_content"
+            android:thumbTint="@color/colorAccent"
+            android:progressTint="@color/colorAccent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/aperture"
+            app:layout_constraintStart_toEndOf="@+id/apertureDisplay" />
+
+
+    <ImageView
+            android:id="@+id/photos"
+            android:src="@drawable/photos"
+            android:padding="12dp"
+            android:layout_width="@dimen/cameraConfigurationIcon"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            android:layout_marginBottom="60dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/aperture"/>
+
+    <TextView
+            android:id="@+id/photosDisplay"
+            android:textColor="@android:color/white"
+            android:src="@drawable/iso"
+            tools:text="4"
+            android:gravity="center"
+            android:layout_width="50dp"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            app:layout_constraintTop_toTopOf="@+id/photos"
+            app:layout_constraintStart_toEndOf="@+id/photos" />
+
+    <SeekBar
+            android:id="@+id/photosSlider"
+            android:max="9"
+            android:progress="0"
+            android:layout_width="0dp"
+            android:layout_marginTop="18dp"
+            android:layout_height="wrap_content"
+            android:thumbTint="@color/colorAccent"
+            android:progressTint="@color/colorAccent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/photos"
+            app:layout_constraintStart_toEndOf="@+id/photosDisplay" />
+
+
+    <ImageView
+            android:id="@+id/timer"
+            android:src="@drawable/timer"
+            android:padding="12dp"
+            android:layout_width="@dimen/cameraConfigurationIcon"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            android:layout_marginBottom="60dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/photos"/>
+
+    <TextView
+            android:id="@+id/timerDisplay"
+            android:textColor="@android:color/white"
+            android:src="@drawable/iso"
+            tools:text="3s"
+            android:gravity="center"
+            android:layout_width="50dp"
+            android:layout_height="@dimen/cameraConfigurationIcon"
+            app:layout_constraintTop_toTopOf="@+id/timer"
+            app:layout_constraintStart_toEndOf="@+id/timer" />
+
+    <SeekBar
+            android:id="@+id/timerSlider"
+            android:max="3"
+            android:layout_width="0dp"
+            android:layout_marginTop="18dp"
+            android:layout_height="wrap_content"
+            android:thumbTint="@color/colorAccent"
+            android:progressTint="@color/colorAccent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/timer"
+            app:layout_constraintStart_toEndOf="@+id/timerDisplay" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
