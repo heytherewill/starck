@@ -38,8 +38,10 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         viewModel.sensorSensitivity.observe(this, Observer(cameraController::setSensorSensitivity))
 
         cameraShutter.setOnClickListener { cameraController.captureImage() }
-        arrow.setOnClickListener { CameraSettingsFragment()
-            .show(requireActivity().supportFragmentManager, "BottomSheet") }
+        arrow.setOnClickListener {
+            CameraSettingsFragment()
+                .show(requireActivity().supportFragmentManager, "BottomSheet")
+        }
     }
 
     override fun onResume() {
@@ -89,7 +91,11 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         )
     }
 
-    override fun onCameraCharacteristicsInitialized(sensitivityRange: Range<Int>, shutterSpeedRange: Range<Long>, validApertures: FloatArray) {
+    override fun onCameraCharacteristicsInitialized(
+        sensitivityRange: Range<Int>,
+        shutterSpeedRange: Range<Long>,
+        validApertures: FloatArray
+    ) {
         viewModel.setShutterSpeedRange(shutterSpeedRange)
         viewModel.setSensorSensitivityRange(sensitivityRange)
         viewModel.setApertureRange(validApertures)

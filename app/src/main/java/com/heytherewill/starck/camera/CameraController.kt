@@ -46,7 +46,7 @@ class CameraController(
 
     private lateinit var previewSize: Size
     private var previewRequest: CaptureRequest? = null
-    private var previewRequestBuilder: CaptureRequest.Builder ?= null
+    private var previewRequestBuilder: CaptureRequest.Builder? = null
 
     private var backgroundThread: HandlerThread? = null
     private var backgroundHandler: Handler? = null
@@ -93,7 +93,8 @@ class CameraController(
             listener.onCameraCharacteristicsInitialized(
                 characteristics.validSensitivities,
                 characteristics.validExposureTimes,
-                characteristics.validApertures)
+                characteristics.validApertures
+            )
 
             val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return
 
@@ -288,7 +289,7 @@ class CameraController(
     private fun prepareRequestBuilder(captureRequestBuilder: CaptureRequest.Builder, preparingForPreview: Boolean) {
         captureRequestBuilder.setFocalDistanceToInfinity()
         aperture?.let(captureRequestBuilder::setAperture)
-        shutterSpeed?.let{ shutterSpeed ->
+        shutterSpeed?.let { shutterSpeed ->
             val maxValidShutterSpeed = if (preparingForPreview) maxPreviewShutterSpeed else shutterSpeed
             val shutterSpeedForPreview = max(shutterSpeed, maxValidShutterSpeed)
             captureRequestBuilder.setShutterSpeed(shutterSpeedForPreview)
@@ -322,7 +323,7 @@ class CameraController(
 
         try {
             val camera = cameraDevice ?: return
-            val surface = imageReader?.surface?: return
+            val surface = imageReader?.surface ?: return
 
             // This is the CaptureRequest.Builder that we use to take a picture.
             val captureBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
@@ -373,7 +374,11 @@ class CameraController(
 
     interface CameraControllerListener {
 
-        fun onCameraCharacteristicsInitialized(sensitivityRange: Range<Int>, shutterSpeedRange: Range<Long>, validApertures: FloatArray)
+        fun onCameraCharacteristicsInitialized(
+            sensitivityRange: Range<Int>,
+            shutterSpeedRange: Range<Long>,
+            validApertures: FloatArray
+        )
 
         fun onImageTaken(image: Image)
     }

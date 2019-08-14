@@ -5,8 +5,8 @@ import android.graphics.SurfaceTexture
 import android.hardware.camera2.params.StreamConfigurationMap
 import android.util.Log
 import android.util.Size
-import java.util.*
 import java.lang.Long.signum
+import java.util.*
 
 val StreamConfigurationMap.largestOutputSize: Size
     get() = Collections.max(

@@ -33,34 +33,52 @@ class CameraSettingsFragment : BottomSheetDialogFragment() {
         val numberOfPicturesUiComponents = CameraOptionUiComponents(photos, photosSlider, photosDisplay)
         val timerUiComponents = CameraOptionUiComponents(timer, timerSlider, timerDisplay)
 
-        viewModel.validSensorSensitivities.observe(this,
-            valueListObserver(isoUiComponents, viewModel.sensorSensitivity.value, viewModel::setSensorSensitivity))
+        viewModel.validSensorSensitivities.observe(
+            this,
+            valueListObserver(isoUiComponents, viewModel.sensorSensitivity.value, viewModel::setSensorSensitivity)
+        )
 
-        viewModel.validShutterSpeeds.observe(this,
-            valueListObserver(shutterSpeedUiComponents, viewModel.shutterSpeed.value, viewModel::setShutterSpeed))
+        viewModel.validShutterSpeeds.observe(
+            this,
+            valueListObserver(shutterSpeedUiComponents, viewModel.shutterSpeed.value, viewModel::setShutterSpeed)
+        )
 
-        viewModel.validApertures.observe(this,
-            valueListObserver(apertureUiComponents, viewModel.aperture.value, viewModel::setAperture))
+        viewModel.validApertures.observe(
+            this,
+            valueListObserver(apertureUiComponents, viewModel.aperture.value, viewModel::setAperture)
+        )
 
-        viewModel.validNumberOfPictures.observe(this,
-            valueListObserver(numberOfPicturesUiComponents, viewModel.numberOfPictures.value, viewModel::setNumberOfPictures))
+        viewModel.validNumberOfPictures.observe(
+            this,
+            valueListObserver(
+                numberOfPicturesUiComponents,
+                viewModel.numberOfPictures.value,
+                viewModel::setNumberOfPictures
+            )
+        )
 
-        viewModel.validTimerDelays.observe(this,
-            valueListObserver(timerUiComponents, viewModel.timerDelay.value, viewModel::setTimerDelay))
+        viewModel.validTimerDelays.observe(
+            this,
+            valueListObserver(timerUiComponents, viewModel.timerDelay.value, viewModel::setTimerDelay)
+        )
 
         viewModel.sensorSensitivity.observe(this, Observer { isoDisplay.text = it.toString() })
-        viewModel.shutterSpeed.observe(this, Observer { shutterSpeedDisplay.text = getString(R.string.formatted_seconds, it) })
-        viewModel.aperture.observe(this, Observer { apertureDisplay.text = getString(R.string.f_number, it)})
+        viewModel.shutterSpeed.observe(
+            this,
+            Observer { shutterSpeedDisplay.text = getString(R.string.formatted_seconds, it) })
+        viewModel.aperture.observe(this, Observer { apertureDisplay.text = getString(R.string.f_number, it) })
         viewModel.numberOfPictures.observe(this, Observer { photosDisplay.text = it.toString() })
         viewModel.timerDelay.observe(this, Observer { timer ->
-            timerDisplay.text = if (timer == 0) getString(R.string.off) else  getString(R.string.formatted_seconds, timer)
+            timerDisplay.text =
+                if (timer == 0) getString(R.string.off) else getString(R.string.formatted_seconds, timer)
         })
     }
 
     private fun <T> valueListObserver(
         uiComponents: CameraOptionUiComponents,
         initialValue: T?,
-        progressChangedCallback: (T) -> Unit) : Observer<List<T>> =
+        progressChangedCallback: (T) -> Unit
+    ): Observer<List<T>> =
         Observer { validValues ->
 
             if (validValues.size <= 1) {

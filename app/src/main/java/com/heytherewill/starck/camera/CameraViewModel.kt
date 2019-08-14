@@ -14,28 +14,32 @@ class CameraViewModel : ViewModel() {
     private val timeList = listOf(0, 3, 5, 10)
 
     private val _sensorSensitivity = MutableLiveData<Int>()
-    val sensorSensitivity: LiveData<Int> get () = _sensorSensitivity
+    val sensorSensitivity: LiveData<Int> get() = _sensorSensitivity
 
     private val _shutterSpeed = MutableLiveData<Long>()
-    val shutterSpeed: LiveData<Long> get () = _shutterSpeed
+    val shutterSpeed: LiveData<Long> get() = _shutterSpeed
 
     private val _aperture = MutableLiveData<Float>()
-    val aperture: LiveData<Float> get () = _aperture
+    val aperture: LiveData<Float> get() = _aperture
 
     private val _numberOfPictures = MutableLiveData<Int>().apply { value = 2 }
-    val numberOfPictures: LiveData<Int> get () = _numberOfPictures
+    val numberOfPictures: LiveData<Int> get() = _numberOfPictures
 
     private val _timerDelay = MutableLiveData<Int>().apply { value = 0 }
-    val timerDelay: LiveData<Int> get () = _timerDelay
+    val timerDelay: LiveData<Int> get() = _timerDelay
 
     private val _validSensorSensitivities = MutableLiveData<List<Int>>()
-    val validSensorSensitivities: LiveData<List<Int>> get () =  _validSensorSensitivities
+    val validSensorSensitivities: LiveData<List<Int>> get() = _validSensorSensitivities
     private val _validApertures = MutableLiveData<List<Float>>()
-    val validApertures: LiveData<List<Float>> get () = _validApertures
-    private val _validShutterSpeeds= MutableLiveData<List<Long>>()
-    val validShutterSpeeds: LiveData<List<Long>> get () =  _validShutterSpeeds
-    val validNumberOfPictures : LiveData<List<Int>> by lazy { MutableLiveData<List<Int>>().apply { value = numberOfPicturesList } }
-    val validTimerDelays : LiveData<List<Int>> by lazy { MutableLiveData<List<Int>>().apply { value = timeList } }
+    val validApertures: LiveData<List<Float>> get() = _validApertures
+    private val _validShutterSpeeds = MutableLiveData<List<Long>>()
+    val validShutterSpeeds: LiveData<List<Long>> get() = _validShutterSpeeds
+    val validNumberOfPictures: LiveData<List<Int>> by lazy {
+        MutableLiveData<List<Int>>().apply {
+            value = numberOfPicturesList
+        }
+    }
+    val validTimerDelays: LiveData<List<Int>> by lazy { MutableLiveData<List<Int>>().apply { value = timeList } }
 
     fun setSensorSensitivityRange(range: Range<Int>) {
         val validIsos = isoList.filter(range::contains)
@@ -85,7 +89,7 @@ class CameraViewModel : ViewModel() {
 
     fun setAperture(aperture: Float) {
         val validApertures = _validApertures.value ?: return
-        if (!validApertures .contains(aperture))
+        if (!validApertures.contains(aperture))
             return
 
         _aperture.value = aperture
