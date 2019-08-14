@@ -1,4 +1,4 @@
-package com.heytherewill.starck.main
+package com.heytherewill.starck.camera
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,9 +15,9 @@ import com.heytherewill.starck.R
 import com.heytherewill.starck.extensions.onProgressChangedListener
 import kotlinx.android.synthetic.main.fragment_camera_options_bottom_sheet.*
 
-class CameraOptionsBottomSheetFragment : BottomSheetDialogFragment() {
+class CameraSettingsFragment : BottomSheetDialogFragment() {
 
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: CameraViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_camera_options_bottom_sheet, container, false)
@@ -25,7 +25,7 @@ class CameraOptionsBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProviders.of(requireActivity()).get(MainViewModel::class.java)
+        viewModel = ViewModelProviders.of(requireActivity()).get(CameraViewModel::class.java)
 
         val isoUiComponents = CameraOptionUiComponents(iso, isoSlider, isoDisplay)
         val apertureUiComponents = CameraOptionUiComponents(aperture, apertureSlider, apertureDisplay)

@@ -1,38 +1,45 @@
-package com.heytherewill.starck.main
+package com.heytherewill.starck.camera
 
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.media.Image
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Range
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.heytherewill.starck.R
 import com.heytherewill.starck.extensions.checkCameraPermission
 import com.heytherewill.starck.extensions.requestCameraPermission
-import kotlinx.android.synthetic.main.activity_main.*
-import android.provider.MediaStore.Images
-import com.heytherewill.starck.R
+import kotlinx.android.synthetic.main.fragment_camera.*
 
+class CameraFragment : Fragment(), CameraController.CameraControllerListener {
 
-class MainActivity : AppCompatActivity(), CameraController.CameraControllerListener {
-
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: CameraViewModel
     private lateinit var cameraController: CameraController
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+        inflater.inflate(R.layout.fragment_camera, container, false)
 
-        viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
-        cameraController = CameraController(this, this, cameraPreview)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val activity = requireActivity()
+
+        viewModel = ViewModelProviders.of(activity).get(CameraViewModel::class.java)
+        cameraController = CameraController(activity, this, cameraPreview)
 
         viewModel.aperture.observe(this, Observer(cameraController::setAperture))
         viewModel.shutterSpeed.observe(this, Observer(cameraController::setShutterSpeed))
         viewModel.sensorSensitivity.observe(this, Observer(cameraController::setSensorSensitivity))
 
         cameraShutter.setOnClickListener { cameraController.captureImage() }
-        arrow.setOnClickListener { CameraOptionsBottomSheetFragment().show(supportFragmentManager, "BottomSheet") }
+        arrow.setOnClickListener { CameraSettingsFragment()
+            .show(requireActivity().supportFragmentManager, "BottomSheet") }
     }
 
     override fun onResume() {
@@ -57,8 +64,10 @@ class MainActivity : AppCompatActivity(), CameraController.CameraControllerListe
     }
 
     private fun openCameraIfPossible() {
-        if (!checkCameraPermission()) {
-            requestCameraPermission()
+        val activity = activity ?: return
+
+        if (!activity.checkCameraPermission()) {
+            activity.requestCameraPermission()
             return
         }
 
@@ -66,12 +75,14 @@ class MainActivity : AppCompatActivity(), CameraController.CameraControllerListe
     }
 
     override fun onImageTaken(image: Image) {
+        val activity = activity ?: return
+
         val buffer = image.planes[0].buffer
         val bytes = ByteArray(buffer.capacity())
         buffer.get(bytes)
         val bitmapImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
-        Images.Media.insertImage(
-            contentResolver,
+        MediaStore.Images.Media.insertImage(
+            activity.contentResolver,
             bitmapImage,
             "Image Stack",
             "Created with Starck"

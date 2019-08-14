@@ -1,4 +1,4 @@
-package com.heytherewill.starck.main
+package com.heytherewill.starck.camera
 
 import android.app.Activity
 import android.content.Context
@@ -337,7 +337,7 @@ class CameraController(
                         (activity.windowManager.defaultDisplay.deviceOrientation + sensorOrientation + 270) % 360
 
                     set(CaptureRequest.JPEG_ORIENTATION, jpegOrientation)
-                    
+
                     prepareRequestBuilder(this, false)
                 }
 

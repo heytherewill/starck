@@ -1,4 +1,4 @@
-package com.heytherewill.starck.main
+package com.heytherewill.starck.camera
 
 import android.util.Range
 import androidx.lifecycle.LiveData
@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.heytherewill.starck.extensions.nanosToSeconds
 
-class MainViewModel : ViewModel() {
+class CameraViewModel : ViewModel() {
 
     private val isoList = listOf(50, 100, 200, 400, 800, 1600, 3200, 6400, 10000)
     private val shutterSpeedList = (1L..10L).toList()

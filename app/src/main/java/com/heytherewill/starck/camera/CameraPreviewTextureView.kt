@@ -1,4 +1,4 @@
-package com.heytherewill.starck.main
+package com.heytherewill.starck.camera
 
 import android.content.Context
 import android.graphics.SurfaceTexture

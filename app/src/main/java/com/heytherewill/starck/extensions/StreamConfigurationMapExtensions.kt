@@ -5,7 +5,6 @@ import android.graphics.SurfaceTexture
 import android.hardware.camera2.params.StreamConfigurationMap
 import android.util.Log
 import android.util.Size
-import com.heytherewill.starck.main.CameraController
 import java.util.*
 import java.lang.Long.signum
 
@@ -49,7 +48,7 @@ fun StreamConfigurationMap.chooseOptimalPreviewSize(
         bigEnough.size > 0 -> Collections.min(bigEnough, CompareSizesByArea())
         notBigEnough.size > 0 -> Collections.max(notBigEnough, CompareSizesByArea())
         else -> {
-            Log.e(CameraController.tag, "Couldn't find any suitable preview size")
+            Log.e("CameraController", "Couldn't find any suitable preview size")
             choices[0]
         }
     }
