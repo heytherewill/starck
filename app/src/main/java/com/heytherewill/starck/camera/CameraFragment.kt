@@ -9,12 +9,14 @@ import android.util.Range
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.heytherewill.starck.R
 import com.heytherewill.starck.extensions.checkCameraPermission
 import com.heytherewill.starck.extensions.requestCameraPermission
+import com.heytherewill.starck.extensions.showWithCircularReveal
 import kotlinx.android.synthetic.main.fragment_camera.*
 
 class CameraFragment : Fragment(), CameraController.CameraControllerListener {
@@ -37,7 +39,16 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         viewModel.shutterSpeed.observe(this, Observer { cameraController.shutterSpeed = it })
         viewModel.sensorSensitivity.observe(this, Observer { cameraController.sensorSensitivity = it })
 
-        cameraShutter.setOnClickListener { cameraController.captureImage() }
+        cameraShutter.setOnClickListener {
+
+            arrow.isEnabled = false
+            cameraShutter.isEnabled = false
+            captureInProgressWarning.isVisible = true
+            captureInProgressOverlay.showWithCircularReveal(cameraShutter) {
+                cameraController.takePicture()
+            }
+        }
+
         arrow.setOnClickListener {
             CameraSettingsFragment()
                 .show(requireActivity().supportFragmentManager, "BottomSheet")
@@ -74,6 +85,15 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         }
 
         cameraController.openCamera()
+    }
+
+    override fun onCaptureFinished() {
+        captureInProgressOverlay.post {
+            arrow.isEnabled = true
+            cameraShutter.isEnabled = true
+            captureInProgressWarning.isVisible = false
+            captureInProgressOverlay.isVisible = false
+        }
     }
 
     override fun onImageTaken(image: Image) {

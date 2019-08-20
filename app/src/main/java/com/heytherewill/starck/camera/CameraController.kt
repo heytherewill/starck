@@ -35,6 +35,49 @@ class CameraController(
     private val textureView: CameraPreviewTextureView
 ) {
 
+    private var cameraId: String? = null
+    private var sensorOrientation = 0
+    private var cameraDevice: CameraDevice? = null
+    private var captureSession: CameraCaptureSession? = null
+    private val cameraOpenCloseLock = Semaphore(1)
+
+    private lateinit var previewSize: Size
+    private var previewRequestBuilder: CaptureRequest.Builder? = null
+
+    private var backgroundThread: HandlerThread? = null
+    private var backgroundHandler: Handler? = null
+
+    private var picturesTakenInSession = 0
+
+    private var imageReader: ImageReader? = null
+    private val onImageAvailableListener = ImageReader.OnImageAvailableListener {
+        backgroundHandler?.post {
+            val image = it.acquireNextImage()
+            listener.onImageTaken(image)
+            image.close()
+        }
+    }
+
+    private val stateCallback = object : CameraDevice.StateCallback() {
+        override fun onOpened(cameraDevice: CameraDevice) {
+            cameraOpenCloseLock.release()
+            this@CameraController.cameraDevice = cameraDevice
+            createCameraPreviewSession()
+        }
+
+        override fun onDisconnected(cameraDevice: CameraDevice) {
+            cameraOpenCloseLock.release()
+            cameraDevice.close()
+            this@CameraController.cameraDevice = null
+        }
+
+        override fun onError(cameraDevice: CameraDevice, error: Int) {
+            onDisconnected(cameraDevice)
+        }
+    }
+    var isTakingPictures = false; private set
+    var numberOfPictures = 2
+
     var aperture: Float? = null
         set(value) {
             field = value
@@ -65,43 +108,122 @@ class CameraController(
             reloadPreview()
         }
 
-    private var cameraId: String? = null
-    private var sensorOrientation = 0
-    private var cameraDevice: CameraDevice? = null
-    private var captureSession: CameraCaptureSession? = null
-    private val cameraOpenCloseLock = Semaphore(1)
+    @RequiresPermission(android.Manifest.permission.CAMERA)
+    fun openCamera() {
+        val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        startBackgroundThread()
+        setUpCameraOutputs(textureView.width, textureView.height)
+        configureTransform(textureView.width, textureView.height)
 
-    private lateinit var previewSize: Size
-    private var previewRequest: CaptureRequest? = null
-    private var previewRequestBuilder: CaptureRequest.Builder? = null
+        val cameraId = cameraId ?: return
 
-    private var backgroundThread: HandlerThread? = null
-    private var backgroundHandler: Handler? = null
+        try {
+            // Wait for camera to open - 2.5 seconds is sufficient
+            if (!cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
+                throw RuntimeException("Time out waiting to lock camera opening.")
+            }
+            manager.openCamera(cameraId, stateCallback, backgroundHandler)
+        } catch (e: CameraAccessException) {
+            Log.e(tag, e.toString())
+        } catch (e: InterruptedException) {
+            throw RuntimeException("Interrupted while trying to lock camera opening.", e)
+        }
 
-    private var imageReader: ImageReader? = null
-    private val onImageAvailableListener = ImageReader.OnImageAvailableListener {
-        backgroundHandler?.post {
-            val image = it.acquireNextImage()
-            listener.onImageTaken(image)
-            image.close()
+    }
+
+    fun closeCamera() {
+        try {
+            cameraOpenCloseLock.acquire()
+            captureSession?.close()
+            captureSession = null
+            cameraDevice?.close()
+            cameraDevice = null
+            imageReader?.close()
+            imageReader = null
+        } catch (e: InterruptedException) {
+            throw RuntimeException("Interrupted while trying to lock camera closing.", e)
+        } finally {
+            cameraOpenCloseLock.release()
+            stopBackgroundThread()
         }
     }
 
-    private val stateCallback = object : CameraDevice.StateCallback() {
-        override fun onOpened(cameraDevice: CameraDevice) {
-            cameraOpenCloseLock.release()
-            this@CameraController.cameraDevice = cameraDevice
-            createCameraPreviewSession()
-        }
+    fun configureTransform(viewWidth: Int, viewHeight: Int) {
+        val rotation = activity.windowManager.defaultDisplay.rotation
+        val matrix = Matrix()
+        val viewRect = RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
+        val bufferRect = RectF(0f, 0f, previewSize.height.toFloat(), previewSize.width.toFloat())
+        val centerX = viewRect.centerX()
+        val centerY = viewRect.centerY()
 
-        override fun onDisconnected(cameraDevice: CameraDevice) {
-            cameraOpenCloseLock.release()
-            cameraDevice.close()
-            this@CameraController.cameraDevice = null
+        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
+            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
+            val scale = max(viewHeight.toFloat() / previewSize.height, viewWidth.toFloat() / previewSize.width)
+            with(matrix) {
+                setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
+                postScale(scale, scale, centerX, centerY)
+                postRotate((90 * (rotation - 2)).toFloat(), centerX, centerY)
+            }
+        } else if (Surface.ROTATION_180 == rotation) {
+            matrix.postRotate(180f, centerX, centerY)
         }
+        textureView.setTransform(matrix)
+    }
 
-        override fun onError(cameraDevice: CameraDevice, error: Int) {
-            onDisconnected(cameraDevice)
+    fun takePicture() {
+
+        try {
+            val camera = cameraDevice ?: return
+            val surface = imageReader?.surface ?: return
+
+            isTakingPictures = true
+
+            val captureBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
+                .apply {
+                    addTarget(surface)
+
+                    val jpegOrientation =
+                        (activity.windowManager.defaultDisplay.deviceOrientation + sensorOrientation + 270) % 360
+
+                    set(CaptureRequest.JPEG_ORIENTATION, jpegOrientation)
+
+                    prepareRequestBuilder(this, false)
+                }
+
+            val captureCallback = object : CameraCaptureSession.CaptureCallback() {
+                override fun onCaptureCompleted(
+                    session: CameraCaptureSession,
+                    request: CaptureRequest,
+                    result: TotalCaptureResult
+                ) {
+                    picturesTakenInSession++
+                    resumePreview()
+                }
+            }
+
+            captureSession?.apply {
+                stopRepeating()
+                abortCaptures()
+                capture(captureBuilder.build(), captureCallback, backgroundHandler)
+            }
+        } catch (e: CameraAccessException) {
+            Log.e(tag, e.toString())
+        }
+    }
+
+    private fun startBackgroundThread() {
+        backgroundThread = HandlerThread(cameraControllerThreadName).also { it.start() }
+        backgroundHandler = Handler(backgroundThread?.looper)
+    }
+
+    private fun stopBackgroundThread() {
+        backgroundThread?.quitSafely()
+        try {
+            backgroundThread?.join()
+            backgroundThread = null
+            backgroundHandler = null
+        } catch (e: InterruptedException) {
+            Log.e(tag, e.toString())
         }
     }
 
@@ -186,62 +308,6 @@ class CameraController(
         return swappedDimensions
     }
 
-    @RequiresPermission(android.Manifest.permission.CAMERA)
-    fun openCamera() {
-        val manager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        startBackgroundThread()
-        setUpCameraOutputs(textureView.width, textureView.height)
-        configureTransform(textureView.width, textureView.height)
-
-        val cameraId = cameraId ?: return
-
-        try {
-            // Wait for camera to open - 2.5 seconds is sufficient
-            if (!cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
-                throw RuntimeException("Time out waiting to lock camera opening.")
-            }
-            manager.openCamera(cameraId, stateCallback, backgroundHandler)
-        } catch (e: CameraAccessException) {
-            Log.e(tag, e.toString())
-        } catch (e: InterruptedException) {
-            throw RuntimeException("Interrupted while trying to lock camera opening.", e)
-        }
-
-    }
-
-    fun closeCamera() {
-        try {
-            cameraOpenCloseLock.acquire()
-            captureSession?.close()
-            captureSession = null
-            cameraDevice?.close()
-            cameraDevice = null
-            imageReader?.close()
-            imageReader = null
-        } catch (e: InterruptedException) {
-            throw RuntimeException("Interrupted while trying to lock camera closing.", e)
-        } finally {
-            cameraOpenCloseLock.release()
-            stopBackgroundThread()
-        }
-    }
-
-    private fun startBackgroundThread() {
-        backgroundThread = HandlerThread(cameraControllerThreadName).also { it.start() }
-        backgroundHandler = Handler(backgroundThread?.looper)
-    }
-
-    private fun stopBackgroundThread() {
-        backgroundThread?.quitSafely()
-        try {
-            backgroundThread?.join()
-            backgroundThread = null
-            backgroundHandler = null
-        } catch (e: InterruptedException) {
-            Log.e(tag, e.toString())
-        }
-    }
-
     private fun reloadPreview() {
         previewRequestBuilder?.apply {
             captureSession?.setRepeatingRequest(build(), null, backgroundHandler)
@@ -275,7 +341,6 @@ class CameraController(
                             val previewRequest = previewRequestBuilder.build()
                             captureSession?.setRepeatingRequest(previewRequest, null, backgroundHandler)
 
-                            this@CameraController.previewRequest = previewRequest
                             this@CameraController.previewRequestBuilder = previewRequestBuilder
 
                         } catch (e: CameraAccessException) {
@@ -302,76 +367,22 @@ class CameraController(
         sensorSensitivity?.let(captureRequestBuilder::setSensorSensitivity)
     }
 
-    fun configureTransform(viewWidth: Int, viewHeight: Int) {
-        val rotation = activity.windowManager.defaultDisplay.rotation
-        val matrix = Matrix()
-        val viewRect = RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
-        val bufferRect = RectF(0f, 0f, previewSize.height.toFloat(), previewSize.width.toFloat())
-        val centerX = viewRect.centerX()
-        val centerY = viewRect.centerY()
-
-        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
-            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
-            val scale = max(viewHeight.toFloat() / previewSize.height, viewWidth.toFloat() / previewSize.width)
-            with(matrix) {
-                setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
-                postScale(scale, scale, centerX, centerY)
-                postRotate((90 * (rotation - 2)).toFloat(), centerX, centerY)
-            }
-        } else if (Surface.ROTATION_180 == rotation) {
-            matrix.postRotate(180f, centerX, centerY)
-        }
-        textureView.setTransform(matrix)
-    }
-
-    fun captureImage() {
-
-        try {
-            val camera = cameraDevice ?: return
-            val surface = imageReader?.surface ?: return
-
-            // This is the CaptureRequest.Builder that we use to take a picture.
-            val captureBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
-                .apply {
-                    addTarget(surface)
-
-                    // Sensor orientation is 90 for most devices, or 270 for some devices (eg. Nexus 5X)
-                    // We have to take that into account and rotate JPEG properly.
-                    // For devices with orientation of 90, we return our mapping from ORIENTATIONS.
-                    // For devices with orientation of 270, we need to rotate the JPEG 180 degrees.
-                    val jpegOrientation =
-                        (activity.windowManager.defaultDisplay.deviceOrientation + sensorOrientation + 270) % 360
-
-                    set(CaptureRequest.JPEG_ORIENTATION, jpegOrientation)
-
-                    prepareRequestBuilder(this, false)
-                }
-
-            val captureCallback = object : CameraCaptureSession.CaptureCallback() {
-                override fun onCaptureCompleted(
-                    session: CameraCaptureSession,
-                    request: CaptureRequest,
-                    result: TotalCaptureResult
-                ) {
-                    resumePreview()
-                }
-            }
-
-            captureSession?.apply {
-                stopRepeating()
-                abortCaptures()
-                capture(captureBuilder.build(), captureCallback, backgroundHandler)
-            }
-        } catch (e: CameraAccessException) {
-            Log.e(tag, e.toString())
-        }
-    }
-
     private fun resumePreview() {
-        val previewRequest = previewRequest ?: return
+        val previewRequest = previewRequestBuilder?.build() ?: return
 
         try {
+
+            if (picturesTakenInSession < numberOfPictures) {
+                takePicture()
+                return
+            }
+
+            picturesTakenInSession = 0
+            isTakingPictures = false
+
             captureSession?.setRepeatingRequest(previewRequest, null, backgroundHandler)
+
+            listener.onCaptureFinished()
         } catch (e: CameraAccessException) {
             Log.e(tag, e.toString())
         }
@@ -386,5 +397,7 @@ class CameraController(
         )
 
         fun onImageTaken(image: Image)
+
+        fun onCaptureFinished()
     }
 }
