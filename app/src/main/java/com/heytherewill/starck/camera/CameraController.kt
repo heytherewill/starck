@@ -34,9 +34,36 @@ class CameraController(
     private val listener: CameraControllerListener,
     private val textureView: CameraPreviewTextureView
 ) {
-    private var aperture: Float? = null
-    private var sensorSensitivity: Int? = null
-    private var shutterSpeed: Long? = null
+
+    var aperture: Float? = null
+        set(value) {
+            field = value
+
+            val aperture = value ?: return
+            val previewRequestBuilder = previewRequestBuilder ?: return
+            previewRequestBuilder.setAperture(aperture)
+            reloadPreview()
+        }
+
+    var sensorSensitivity: Int? = null
+        set(value) {
+            field = value
+
+            val sensorSensitivity = value ?: return
+            val previewRequestBuilder = previewRequestBuilder ?: return
+            previewRequestBuilder.setSensorSensitivity(sensorSensitivity)
+            reloadPreview()
+        }
+
+    var shutterSpeed: Long? = null
+        set(value) {
+            field = value
+
+            val shutterSpeed = value ?: return
+            val previewRequestBuilder = previewRequestBuilder ?: return
+            previewRequestBuilder.setShutterSpeed(shutterSpeed)
+            reloadPreview()
+        }
 
     private var cameraId: String? = null
     private var sensorOrientation = 0
@@ -91,8 +118,8 @@ class CameraController(
 
             val characteristics = manager.getCameraCharacteristics(cameraId)
             listener.onCameraCharacteristicsInitialized(
-                characteristics.validSensitivities,
-                characteristics.validExposureTimes,
+                characteristics.validSensorSensitivities,
+                characteristics.validShutterSpeeds,
                 characteristics.validApertures
             )
 
@@ -213,28 +240,6 @@ class CameraController(
         } catch (e: InterruptedException) {
             Log.e(tag, e.toString())
         }
-    }
-
-    fun setSensorSensitivity(sensorSensitivity: Int) {
-        this.sensorSensitivity = sensorSensitivity
-
-        previewRequestBuilder?.setSensorSensitivity(sensorSensitivity)
-        reloadPreview()
-    }
-
-    fun setShutterSpeed(shutterSpeedInSeconds: Long) {
-        val shutterSpeedInNanos = shutterSpeedInSeconds.secondsToNanos()
-        shutterSpeed = shutterSpeedInNanos
-
-        previewRequestBuilder?.setShutterSpeed(shutterSpeedInNanos)
-        reloadPreview()
-    }
-
-    fun setAperture(aperture: Float) {
-        this.aperture = aperture
-
-        previewRequestBuilder?.setAperture(aperture)
-        reloadPreview()
     }
 
     private fun reloadPreview() {

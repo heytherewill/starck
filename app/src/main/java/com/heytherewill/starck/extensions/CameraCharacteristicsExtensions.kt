@@ -7,10 +7,10 @@ import android.util.Range
 val CameraCharacteristics.lensAreFrontFacing: Boolean
     get() = this.get(CameraCharacteristics.LENS_FACING) == CameraMetadata.LENS_FACING_FRONT
 
-val CameraCharacteristics.validExposureTimes: Range<Long>
+val CameraCharacteristics.validShutterSpeeds: Range<Long>
     get() = this.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE) ?: Range(0L, 0L)
 
-val CameraCharacteristics.validSensitivities: Range<Int>
+val CameraCharacteristics.validSensorSensitivities: Range<Int>
     get() = this.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE) ?: Range(0, 0)
 
 val CameraCharacteristics.validApertures: FloatArray

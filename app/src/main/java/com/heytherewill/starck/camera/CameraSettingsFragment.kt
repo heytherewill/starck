@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.heytherewill.starck.R
+import com.heytherewill.starck.extensions.nanosToSeconds
 import com.heytherewill.starck.extensions.onProgressChangedListener
 import kotlinx.android.synthetic.main.fragment_camera_options_bottom_sheet.*
 
@@ -27,15 +28,21 @@ class CameraSettingsFragment : BottomSheetDialogFragment() {
 
         viewModel = ViewModelProviders.of(requireActivity()).get(CameraViewModel::class.java)
 
-        val isoUiComponents = CameraOptionUiComponents(iso, isoSlider, isoDisplay)
-        val apertureUiComponents = CameraOptionUiComponents(aperture, apertureSlider, apertureDisplay)
-        val shutterSpeedUiComponents = CameraOptionUiComponents(shutterSpeed, shutterSpeedSlider, shutterSpeedDisplay)
-        val numberOfPicturesUiComponents = CameraOptionUiComponents(photos, photosSlider, photosDisplay)
-        val timerUiComponents = CameraOptionUiComponents(timer, timerSlider, timerDisplay)
+        val sensorSensitivityUiComponents =
+            CameraOptionUiComponents(sensorSensitivityIcon, sensorSensitivitySeekBar, sensorSensitivityText)
+        val apertureUiComponents = CameraOptionUiComponents(apertureIcon, apertureSeekBar, apertureText)
+        val shutterSpeedUiComponents = CameraOptionUiComponents(shutterSpeedIcon, shutterSpeedSeekBar, shutterSpeedText)
+        val numberOfPicturesUiComponents =
+            CameraOptionUiComponents(numberOfPicturesIcon, numberOfPictureSeekBar, numberOfPicturesText)
+        val timerUiComponents = CameraOptionUiComponents(timerDelayIcon, timerDelaySeekBar, timerDelayText)
 
         viewModel.validSensorSensitivities.observe(
             this,
-            valueListObserver(isoUiComponents, viewModel.sensorSensitivity.value, viewModel::setSensorSensitivity)
+            valueListObserver(
+                sensorSensitivityUiComponents,
+                viewModel.sensorSensitivity.value,
+                viewModel::setSensorSensitivity
+            )
         )
 
         viewModel.validShutterSpeeds.observe(
@@ -62,14 +69,14 @@ class CameraSettingsFragment : BottomSheetDialogFragment() {
             valueListObserver(timerUiComponents, viewModel.timerDelay.value, viewModel::setTimerDelay)
         )
 
-        viewModel.sensorSensitivity.observe(this, Observer { isoDisplay.text = it.toString() })
+        viewModel.sensorSensitivity.observe(this, Observer { sensorSensitivityText.text = it.toString() })
         viewModel.shutterSpeed.observe(
             this,
-            Observer { shutterSpeedDisplay.text = getString(R.string.formatted_seconds, it) })
-        viewModel.aperture.observe(this, Observer { apertureDisplay.text = getString(R.string.f_number, it) })
-        viewModel.numberOfPictures.observe(this, Observer { photosDisplay.text = it.toString() })
+            Observer { shutterSpeedText.text = getString(R.string.formatted_seconds, it.nanosToSeconds()) })
+        viewModel.aperture.observe(this, Observer { apertureText.text = getString(R.string.f_number, it) })
+        viewModel.numberOfPictures.observe(this, Observer { numberOfPicturesText.text = it.toString() })
         viewModel.timerDelay.observe(this, Observer { timer ->
-            timerDisplay.text =
+            timerDelayText.text =
                 if (timer == 0) getString(R.string.off) else getString(R.string.formatted_seconds, timer)
         })
     }

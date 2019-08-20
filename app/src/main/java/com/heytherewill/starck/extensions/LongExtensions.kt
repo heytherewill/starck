@@ -1,6 +1,5 @@
 package com.heytherewill.starck.extensions
 
-private val nanosInSeconds = 1000000000
+private val nanosInSeconds = 1000000000f
 
-fun Long.nanosToSeconds(): Long = this / nanosInSeconds
-fun Long.secondsToNanos(): Long = this * nanosInSeconds
+fun Long.nanosToSeconds(): Float = this / nanosInSeconds

@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Starck</string>
     <string name="off">Off</string>
-    <string name="formatted_seconds">%1$ds</string>
+    <string name="formatted_seconds">%1$.1fs</string>
     <string name="f_number">f/1$d</string>
 </resources>

@@ -33,9 +33,9 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         viewModel = ViewModelProviders.of(activity).get(CameraViewModel::class.java)
         cameraController = CameraController(activity, this, cameraPreview)
 
-        viewModel.aperture.observe(this, Observer(cameraController::setAperture))
-        viewModel.shutterSpeed.observe(this, Observer(cameraController::setShutterSpeed))
-        viewModel.sensorSensitivity.observe(this, Observer(cameraController::setSensorSensitivity))
+        viewModel.aperture.observe(this, Observer { cameraController.aperture = it })
+        viewModel.shutterSpeed.observe(this, Observer { cameraController.shutterSpeed = it })
+        viewModel.sensorSensitivity.observe(this, Observer { cameraController.sensorSensitivity = it })
 
         cameraShutter.setOnClickListener { cameraController.captureImage() }
         arrow.setOnClickListener {

@@ -4,12 +4,12 @@ import android.util.Range
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.heytherewill.starck.extensions.nanosToSeconds
 
 class CameraViewModel : ViewModel() {
 
-    private val isoList = listOf(50, 100, 200, 400, 800, 1600, 3200, 6400, 10000)
-    private val shutterSpeedList = (1L..10L).toList()
+    private val sensorSensitivities = listOf(50, 100, 200, 400, 800, 1600, 3200, 6400, 10000)
+    private val shutterSpeedList =
+        listOf(500000000, 1000000000, 1500000000, 2000000000, 2500000000, 3000000000, 3500000000, 4000000000)
     private val numberOfPicturesList = (2..8).toList()
     private val timeList = listOf(0, 3, 5, 10)
 
@@ -30,54 +30,64 @@ class CameraViewModel : ViewModel() {
 
     private val _validSensorSensitivities = MutableLiveData<List<Int>>()
     val validSensorSensitivities: LiveData<List<Int>> get() = _validSensorSensitivities
+
     private val _validApertures = MutableLiveData<List<Float>>()
     val validApertures: LiveData<List<Float>> get() = _validApertures
+
     private val _validShutterSpeeds = MutableLiveData<List<Long>>()
     val validShutterSpeeds: LiveData<List<Long>> get() = _validShutterSpeeds
-    val validNumberOfPictures: LiveData<List<Int>> by lazy {
-        MutableLiveData<List<Int>>().apply {
-            value = numberOfPicturesList
-        }
-    }
-    val validTimerDelays: LiveData<List<Int>> by lazy { MutableLiveData<List<Int>>().apply { value = timeList } }
+
+    val validNumberOfPictures: LiveData<List<Int>> = MutableLiveData<List<Int>>()
+        .apply { value = numberOfPicturesList }
+
+    val validTimerDelays: LiveData<List<Int>> = MutableLiveData<List<Int>>()
+        .apply { value = timeList }
 
     fun setSensorSensitivityRange(range: Range<Int>) {
-        val validIsos = isoList.filter(range::contains)
-        _validSensorSensitivities.value = validIsos
+        val validSensorSensitivities = sensorSensitivities.filter(range::contains)
+        _validSensorSensitivities.value = validSensorSensitivities
 
-        val currentIso = _sensorSensitivity.value ?: return
-        if (!validIsos.contains(currentIso)) {
-            _sensorSensitivity.value = range.lower
+        if (validSensorSensitivities.isEmpty())
+            return
+
+        val currentSensorSensitivity = _sensorSensitivity.value ?: -1
+        if (!validSensorSensitivities.contains(currentSensorSensitivity)) {
+            _sensorSensitivity.value = validSensorSensitivities.min()
         }
     }
 
-    fun setShutterSpeedRange(rangeInNanoSeconds: Range<Long>) {
-        val maxTimeInSeconds = rangeInNanoSeconds.upper.nanosToSeconds()
-        val rangeInSeconds = Range(1L, maxTimeInSeconds)
+    fun setShutterSpeedRange(shutterSpeeds: Range<Long>) {
 
-        val validShutterSpeeds = shutterSpeedList.filter(rangeInSeconds::contains)
+        val validShutterSpeeds = shutterSpeedList.filter(shutterSpeeds::contains)
         _validShutterSpeeds.value = validShutterSpeeds
 
-        val currentShutterSpeed = _shutterSpeed.value ?: return
+        if (validShutterSpeeds.isEmpty())
+            return
+
+        val currentShutterSpeed = _shutterSpeed.value ?: -1
         if (!validShutterSpeeds.contains(currentShutterSpeed)) {
-            _shutterSpeed.value = rangeInSeconds.lower
+            _shutterSpeed.value = validShutterSpeeds.min()
         }
     }
 
     fun setApertureRange(apertures: FloatArray) {
         _validApertures.value = apertures.toList()
 
-        if (apertures.size == 1) {
-            _aperture.value = apertures.first()
+        if (apertures.isEmpty())
+            return
+
+        val currentAperture = _aperture.value ?: -1F
+        if (!apertures.contains(currentAperture)) {
+            _aperture.value = apertures.min()
         }
     }
 
-    fun setSensorSensitivity(iso: Int) {
+    fun setSensorSensitivity(sensorSensitivity: Int) {
         val validSensitivities = _validSensorSensitivities.value ?: return
-        if (!validSensitivities.contains(iso))
+        if (!validSensitivities.contains(sensorSensitivity))
             return
 
-        _sensorSensitivity.value = iso
+        _sensorSensitivity.value = sensorSensitivity
     }
 
     fun setShutterSpeed(shutterSpeed: Long) {

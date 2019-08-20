@@ -12,8 +12,8 @@
 
 
     <ImageView
-            android:id="@+id/iso"
-            android:src="@drawable/iso"
+            android:id="@+id/sensorSensitivityIcon"
+            android:src="@drawable/ic_sensor_sensitivity"
             android:padding="12dp"
             android:layout_width="@dimen/cameraConfigurationIcon"
             android:layout_height="@dimen/cameraConfigurationIcon"
@@ -22,18 +22,18 @@
 
 
     <TextView
-            android:id="@+id/isoDisplay"
+            android:id="@+id/sensorSensitivityText"
             android:textColor="@android:color/white"
-            android:src="@drawable/iso"
+            android:src="@drawable/ic_sensor_sensitivity"
             tools:text="3200"
             android:gravity="center"
             android:layout_width="50dp"
             android:layout_height="@dimen/cameraConfigurationIcon"
-            app:layout_constraintTop_toTopOf="@+id/iso"
-            app:layout_constraintStart_toEndOf="@+id/iso" />
+            app:layout_constraintTop_toTopOf="@+id/sensorSensitivityIcon"
+            app:layout_constraintStart_toEndOf="@+id/sensorSensitivityIcon" />
 
     <SeekBar
-            android:id="@+id/isoSlider"
+            android:id="@+id/sensorSensitivitySeekBar"
             android:max="10"
             android:layout_width="0dp"
             android:layout_marginTop="18dp"
@@ -41,96 +41,96 @@
             android:thumbTint="@color/colorAccent"
             android:progressTint="@color/colorAccent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/iso"
-            app:layout_constraintStart_toEndOf="@+id/isoDisplay" />
+            app:layout_constraintTop_toTopOf="@+id/sensorSensitivityIcon"
+            app:layout_constraintStart_toEndOf="@+id/sensorSensitivityText" />
 
     <ImageView
-            android:id="@+id/shutterSpeed"
-            android:src="@drawable/shutter_speed"
+            android:id="@+id/shutterSpeedIcon"
+            android:src="@drawable/ic_shutter_speed"
             android:padding="12dp"
             android:layout_width="@dimen/cameraConfigurationIcon"
             android:layout_height="@dimen/cameraConfigurationIcon"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/iso"/>
+            app:layout_constraintTop_toBottomOf="@+id/sensorSensitivityIcon"/>
 
 
     <TextView
-            android:id="@+id/shutterSpeedDisplay"
+            android:id="@+id/shutterSpeedText"
             android:textColor="@android:color/white"
-            android:src="@drawable/iso"
+            android:src="@drawable/ic_sensor_sensitivity"
             tools:text="3200"
             android:gravity="center"
             android:layout_width="50dp"
             android:layout_height="@dimen/cameraConfigurationIcon"
-            app:layout_constraintTop_toTopOf="@+id/shutterSpeed"
-            app:layout_constraintStart_toEndOf="@+id/shutterSpeed" />
+            app:layout_constraintTop_toTopOf="@+id/shutterSpeedIcon"
+            app:layout_constraintStart_toEndOf="@+id/shutterSpeedIcon" />
 
     <SeekBar
-            android:id="@+id/shutterSpeedSlider"
+            android:id="@+id/shutterSpeedSeekBar"
             android:layout_width="0dp"
             android:layout_marginTop="18dp"
             android:layout_height="wrap_content"
             android:thumbTint="@color/colorAccent"
             android:progressTint="@color/colorAccent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/shutterSpeed"
-            app:layout_constraintStart_toEndOf="@+id/shutterSpeedDisplay" />
+            app:layout_constraintTop_toTopOf="@+id/shutterSpeedIcon"
+            app:layout_constraintStart_toEndOf="@+id/shutterSpeedText" />
 
     <ImageView
-            android:id="@+id/aperture"
-            android:src="@drawable/aperture"
+            android:id="@+id/apertureIcon"
+            android:src="@drawable/ic_aperture"
             android:padding="12dp"
             android:layout_width="@dimen/cameraConfigurationIcon"
             android:layout_height="@dimen/cameraConfigurationIcon"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/shutterSpeed"/>
+            app:layout_constraintTop_toBottomOf="@+id/shutterSpeedIcon"/>
 
     <TextView
-            android:id="@+id/apertureDisplay"
+            android:id="@+id/apertureText"
             android:textColor="@android:color/white"
-            android:src="@drawable/iso"
+            android:src="@drawable/ic_sensor_sensitivity"
             tools:text="3200"
             android:gravity="center"
             android:layout_width="50dp"
             android:layout_height="@dimen/cameraConfigurationIcon"
-            app:layout_constraintTop_toTopOf="@+id/aperture"
-            app:layout_constraintStart_toEndOf="@+id/aperture" />
+            app:layout_constraintTop_toTopOf="@+id/apertureIcon"
+            app:layout_constraintStart_toEndOf="@+id/apertureIcon" />
 
     <SeekBar
-            android:id="@+id/apertureSlider"
+            android:id="@+id/apertureSeekBar"
             android:layout_width="0dp"
             android:layout_marginTop="18dp"
             android:layout_height="wrap_content"
             android:thumbTint="@color/colorAccent"
             android:progressTint="@color/colorAccent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/aperture"
-            app:layout_constraintStart_toEndOf="@+id/apertureDisplay" />
+            app:layout_constraintTop_toTopOf="@+id/apertureIcon"
+            app:layout_constraintStart_toEndOf="@+id/apertureText" />
 
 
     <ImageView
-            android:id="@+id/photos"
-            android:src="@drawable/photos"
+            android:id="@+id/numberOfPicturesIcon"
+            android:src="@drawable/ic_number_of_pictures"
             android:padding="12dp"
             android:layout_width="@dimen/cameraConfigurationIcon"
             android:layout_height="@dimen/cameraConfigurationIcon"
             android:layout_marginBottom="60dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/aperture"/>
+            app:layout_constraintTop_toBottomOf="@+id/apertureIcon"/>
 
     <TextView
-            android:id="@+id/photosDisplay"
+            android:id="@+id/numberOfPicturesText"
             android:textColor="@android:color/white"
-            android:src="@drawable/iso"
+            android:src="@drawable/ic_sensor_sensitivity"
             tools:text="4"
             android:gravity="center"
             android:layout_width="50dp"
             android:layout_height="@dimen/cameraConfigurationIcon"
-            app:layout_constraintTop_toTopOf="@+id/photos"
-            app:layout_constraintStart_toEndOf="@+id/photos" />
+            app:layout_constraintTop_toTopOf="@+id/numberOfPicturesIcon"
+            app:layout_constraintStart_toEndOf="@+id/numberOfPicturesIcon" />
 
     <SeekBar
-            android:id="@+id/photosSlider"
+            android:id="@+id/numberOfPictureSeekBar"
             android:max="9"
             android:progress="0"
             android:layout_width="0dp"
@@ -139,33 +139,33 @@
             android:thumbTint="@color/colorAccent"
             android:progressTint="@color/colorAccent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/photos"
-            app:layout_constraintStart_toEndOf="@+id/photosDisplay" />
+            app:layout_constraintTop_toTopOf="@+id/numberOfPicturesIcon"
+            app:layout_constraintStart_toEndOf="@+id/numberOfPicturesText" />
 
 
     <ImageView
-            android:id="@+id/timer"
-            android:src="@drawable/timer"
+            android:id="@+id/timerDelayIcon"
+            android:src="@drawable/ic_timer_delay"
             android:padding="12dp"
             android:layout_width="@dimen/cameraConfigurationIcon"
             android:layout_height="@dimen/cameraConfigurationIcon"
             android:layout_marginBottom="60dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/photos"/>
+            app:layout_constraintTop_toBottomOf="@+id/numberOfPicturesIcon"/>
 
     <TextView
-            android:id="@+id/timerDisplay"
+            android:id="@+id/timerDelayText"
             android:textColor="@android:color/white"
-            android:src="@drawable/iso"
+            android:src="@drawable/ic_sensor_sensitivity"
             tools:text="3s"
             android:gravity="center"
             android:layout_width="50dp"
             android:layout_height="@dimen/cameraConfigurationIcon"
-            app:layout_constraintTop_toTopOf="@+id/timer"
-            app:layout_constraintStart_toEndOf="@+id/timer" />
+            app:layout_constraintTop_toTopOf="@+id/timerDelayIcon"
+            app:layout_constraintStart_toEndOf="@+id/timerDelayIcon" />
 
     <SeekBar
-            android:id="@+id/timerSlider"
+            android:id="@+id/timerDelaySeekBar"
             android:max="3"
             android:layout_width="0dp"
             android:layout_marginTop="18dp"
@@ -173,8 +173,8 @@
             android:thumbTint="@color/colorAccent"
             android:progressTint="@color/colorAccent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/timer"
-            app:layout_constraintStart_toEndOf="@+id/timerDisplay" />
+            app:layout_constraintTop_toTopOf="@+id/timerDelayIcon"
+            app:layout_constraintStart_toEndOf="@+id/timerDelayText" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
