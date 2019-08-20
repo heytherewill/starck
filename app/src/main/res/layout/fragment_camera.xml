@@ -37,9 +37,8 @@
                 android:id="@+id/cameraShutter"
                 android:layout_centerInParent="true"
                 android:src="@drawable/shutter_button"
-                android:layout_margin="12dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_width="80dp"
+                android:layout_height="80dp"/>
 
     </RelativeLayout>
 

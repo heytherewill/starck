@@ -43,8 +43,8 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
 
             arrow.isEnabled = false
             cameraShutter.isEnabled = false
-            captureInProgressWarning.isVisible = true
             captureInProgressOverlay.showWithCircularReveal(cameraShutter) {
+                captureInProgressWarning.isVisible = true
                 cameraController.takePicture()
             }
         }
