@@ -38,6 +38,7 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         viewModel.aperture.observe(this, Observer { cameraController.aperture = it })
         viewModel.shutterSpeed.observe(this, Observer { cameraController.shutterSpeed = it })
         viewModel.sensorSensitivity.observe(this, Observer { cameraController.sensorSensitivity = it })
+        viewModel.numberOfPictures.observe(this, Observer { cameraController.numberOfPictures = it })
 
         cameraShutter.setOnClickListener {
 
