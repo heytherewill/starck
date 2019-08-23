@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:background="@null"
+        android:layout_height="@dimen/imageSelectionPreviewRecyclerViewHeight"
+        android:layout_width="@dimen/imageSelectionPreviewRecyclerViewHeight">
+
+    <View
+            android:id="@+id/selectedBackground"
+            android:background="@color/colorAccent"
+            android:layout_margin="@dimen/threeQuarterDefaultPadding"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    <ImageView
+            android:id="@+id/previewImageView"
+            tools:src="@drawable/ic_launcher_background"
+            android:padding="@dimen/defaultPadding"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"/>
+
+</FrameLayout>

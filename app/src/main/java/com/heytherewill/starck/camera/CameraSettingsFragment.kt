@@ -14,6 +14,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.heytherewill.starck.R
 import com.heytherewill.starck.extensions.nanosToSeconds
 import com.heytherewill.starck.extensions.onProgressChangedListener
+import com.heytherewill.starck.extensions.startImmersiveMode
 import kotlinx.android.synthetic.main.fragment_camera_options_bottom_sheet.*
 
 class CameraSettingsFragment : BottomSheetDialogFragment() {
@@ -77,7 +78,7 @@ class CameraSettingsFragment : BottomSheetDialogFragment() {
         viewModel.numberOfPictures.observe(this, Observer { numberOfPicturesText.text = it.toString() })
         viewModel.timerDelay.observe(this, Observer { timer ->
             timerDelayText.text =
-                if (timer == 0) getString(R.string.off) else getString(R.string.formatted_seconds, timer)
+                if (timer == 0) getString(R.string.off) else getString(R.string.formatted_integer_seconds, timer)
         })
     }
 

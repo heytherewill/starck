@@ -11,7 +11,7 @@ class CameraViewModel : ViewModel() {
     private val shutterSpeedList =
         listOf(500000000, 1000000000, 1500000000, 2000000000, 2500000000, 3000000000, 3500000000, 4000000000)
     private val numberOfPicturesList = (2..8).toList()
-    private val timeList = listOf(0, 3, 5, 10)
+    private val timeList = listOf(0, 1, 3, 5, 10)
 
     private val _sensorSensitivity = MutableLiveData<Int>()
     val sensorSensitivity: LiveData<Int> get() = _sensorSensitivity

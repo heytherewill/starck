@@ -381,8 +381,6 @@ class CameraController(
             isTakingPictures = false
 
             captureSession?.setRepeatingRequest(previewRequest, null, backgroundHandler)
-
-            listener.onCaptureFinished()
         } catch (e: CameraAccessException) {
             Log.e(tag, e.toString())
         }
@@ -397,7 +395,5 @@ class CameraController(
         )
 
         fun onImageTaken(image: Image)
-
-        fun onCaptureFinished()
     }
 }

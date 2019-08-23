@@ -13,10 +13,12 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.Navigation
 import com.heytherewill.starck.R
 import com.heytherewill.starck.extensions.checkCameraPermission
 import com.heytherewill.starck.extensions.requestCameraPermission
 import com.heytherewill.starck.extensions.showWithCircularReveal
+import com.heytherewill.starck.extensions.startImmersiveMode
 import kotlinx.android.synthetic.main.fragment_camera.*
 
 class CameraFragment : Fragment(), CameraController.CameraControllerListener {
@@ -59,11 +61,18 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
     override fun onResume() {
         super.onResume()
 
+        arrow.isEnabled = true
+        cameraShutter.isEnabled = true
+        captureInProgressWarning.isVisible = false
+        captureInProgressOverlay.isVisible = false
+
         if (cameraPreview.isAvailable) {
             openCameraIfPossible()
         } else {
             cameraPreview.setupListener(this::openCameraIfPossible, cameraController::configureTransform)
         }
+
+        cameraShutter.startImmersiveMode()
     }
 
     override fun onPause() {
@@ -88,15 +97,6 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         cameraController.openCamera()
     }
 
-    override fun onCaptureFinished() {
-        captureInProgressOverlay.post {
-            arrow.isEnabled = true
-            cameraShutter.isEnabled = true
-            captureInProgressWarning.isVisible = false
-            captureInProgressOverlay.isVisible = false
-        }
-    }
-
     override fun onImageTaken(image: Image) {
         val activity = activity ?: return
 
@@ -104,13 +104,33 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         val bytes = ByteArray(buffer.capacity())
         buffer.get(bytes)
         val bitmapImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
-        MediaStore.Images.Media.insertImage(
+        val imageUrl = MediaStore.Images.Media.insertImage(
             activity.contentResolver,
             bitmapImage,
             "Image Stack",
             "Created with Starck"
         )
+
+        sessionUrls.add(imageUrl)
+
+        if (sessionUrls.size < viewModel.numberOfPictures.value ?: 2)
+            return
+
+        onCaptureFinished()
     }
+
+    private fun onCaptureFinished() {
+
+        val editFragmentDirections = CameraFragmentDirections
+            .actionCameraFragmentToEditFragment(sessionUrls.toTypedArray())
+
+        sessionUrls.clear()
+
+        Navigation.findNavController(requireActivity(), R.id.fragment_container)
+            .navigate(editFragmentDirections)
+    }
+
+    private val sessionUrls = mutableListOf<String>()
 
     override fun onCameraCharacteristicsInitialized(
         sensitivityRange: Range<Int>,

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="cameraConfigurationIcon">55dp</dimen>
+    <dimen name="imageSelectionPreviewRecyclerViewHeight">100dp</dimen>
+    <dimen name="defaultPadding">16dp</dimen>
+    <dimen name="threeQuarterDefaultPadding">12dp</dimen>
 </resources>
