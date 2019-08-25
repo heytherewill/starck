@@ -23,7 +23,11 @@ class EditFragment : Fragment() {
     private lateinit var viewModel: EditViewModel
     private lateinit var glide: RequestManager
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? =
         inflater.inflate(R.layout.fragment_edit, container, false)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -35,7 +39,8 @@ class EditFragment : Fragment() {
 
         val adapter = EditRecyclerAdapter()
         previewRecyclerView.adapter = adapter
-        previewRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        previewRecyclerView.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
 
         viewModel.stackImages.observe(this, Observer { images ->

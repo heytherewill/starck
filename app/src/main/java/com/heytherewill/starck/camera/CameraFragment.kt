@@ -26,7 +26,11 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
     private lateinit var viewModel: CameraViewModel
     private lateinit var cameraController: CameraController
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? =
         inflater.inflate(R.layout.fragment_camera, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -39,8 +43,12 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
 
         viewModel.aperture.observe(this, Observer { cameraController.aperture = it })
         viewModel.shutterSpeed.observe(this, Observer { cameraController.shutterSpeed = it })
-        viewModel.sensorSensitivity.observe(this, Observer { cameraController.sensorSensitivity = it })
-        viewModel.numberOfPictures.observe(this, Observer { cameraController.numberOfPictures = it })
+        viewModel.sensorSensitivity.observe(
+            this,
+            Observer { cameraController.sensorSensitivity = it })
+        viewModel.numberOfPictures.observe(
+            this,
+            Observer { cameraController.numberOfPictures = it })
 
         cameraShutter.setOnClickListener {
 
@@ -52,10 +60,10 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
             }
         }
 
-        arrow.setOnClickListener {
-            CameraSettingsFragment()
-                .show(requireActivity().supportFragmentManager, "BottomSheet")
+        val settingsViewHeight = lazy {
+            childFragmentManager.findFragmentById(R.id.cameraSettings)?.view?.height ?: 0
         }
+        shutterControls.setupSlidingTouchListener(0, settingsViewHeight)
     }
 
     override fun onResume() {
@@ -69,7 +77,10 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         if (cameraPreview.isAvailable) {
             openCameraIfPossible()
         } else {
-            cameraPreview.setupListener(this::openCameraIfPossible, cameraController::configureTransform)
+            cameraPreview.setupListener(
+                this::openCameraIfPossible,
+                cameraController::configureTransform
+            )
         }
 
         cameraShutter.startImmersiveMode()
@@ -83,7 +94,10 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        cameraController.configureTransform(cameraPreview.measuredWidth, cameraPreview.measuredHeight)
+        cameraController.configureTransform(
+            cameraPreview.measuredWidth,
+            cameraPreview.measuredHeight
+        )
     }
 
     private fun openCameraIfPossible() {

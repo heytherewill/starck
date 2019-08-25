@@ -158,7 +158,10 @@ class CameraController(
 
         if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
             bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
-            val scale = max(viewHeight.toFloat() / previewSize.height, viewWidth.toFloat() / previewSize.width)
+            val scale = max(
+                viewHeight.toFloat() / previewSize.height,
+                viewWidth.toFloat() / previewSize.width
+            )
             with(matrix) {
                 setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
                 postScale(scale, scale, centerX, centerY)
@@ -245,7 +248,8 @@ class CameraController(
                 characteristics.validApertures
             )
 
-            val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return
+            val map =
+                characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return
 
             val largest = map.largestOutputSize
             imageReader = ImageReader
@@ -263,7 +267,8 @@ class CameraController(
             activity.windowManager.defaultDisplay.getSize(displaySize)
             val rotatedPreviewWidth = if (swappedDimensions) height else width
             val rotatedPreviewHeight = if (swappedDimensions) width else height
-            val maxPreviewWidth = (if (swappedDimensions) displaySize.y else displaySize.x).clamp(0, maxPreviewWidth)
+            val maxPreviewWidth =
+                (if (swappedDimensions) displaySize.y else displaySize.x).clamp(0, maxPreviewWidth)
             val maxPreviewHeight =
                 (if (swappedDimensions) displaySize.x else displaySize.y).clamp(0, maxPreviewHeight)
 
@@ -339,7 +344,11 @@ class CameraController(
                             prepareRequestBuilder(previewRequestBuilder, true)
 
                             val previewRequest = previewRequestBuilder.build()
-                            captureSession?.setRepeatingRequest(previewRequest, null, backgroundHandler)
+                            captureSession?.setRepeatingRequest(
+                                previewRequest,
+                                null,
+                                backgroundHandler
+                            )
 
                             this@CameraController.previewRequestBuilder = previewRequestBuilder
 
@@ -356,11 +365,15 @@ class CameraController(
         }
     }
 
-    private fun prepareRequestBuilder(captureRequestBuilder: CaptureRequest.Builder, preparingForPreview: Boolean) {
+    private fun prepareRequestBuilder(
+        captureRequestBuilder: CaptureRequest.Builder,
+        preparingForPreview: Boolean
+    ) {
         captureRequestBuilder.setFocalDistanceToInfinity()
         aperture?.let(captureRequestBuilder::setAperture)
         shutterSpeed?.let { shutterSpeed ->
-            val maxValidShutterSpeed = if (preparingForPreview) maxPreviewShutterSpeed else shutterSpeed
+            val maxValidShutterSpeed =
+                if (preparingForPreview) maxPreviewShutterSpeed else shutterSpeed
             val shutterSpeedForPreview = max(shutterSpeed, maxValidShutterSpeed)
             captureRequestBuilder.setShutterSpeed(shutterSpeedForPreview)
         }

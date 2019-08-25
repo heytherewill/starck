@@ -2,7 +2,7 @@ package com.heytherewill.starck.edit
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModel
 
 class EditViewModel : ViewModel() {
 

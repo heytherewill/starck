@@ -46,7 +46,10 @@ class EditRecyclerAdapter : RecyclerView.Adapter<EditViewHolder>() {
         }
     }
 
-    class StackItemDiffUtilCallback(private val oldItems: List<StackImage>, private val newItems: List<StackImage>) :
+    class StackItemDiffUtilCallback(
+        private val oldItems: List<StackImage>,
+        private val newItems: List<StackImage>
+    ) :
         DiffUtil.Callback() {
 
         override fun getOldListSize() = oldItems.size

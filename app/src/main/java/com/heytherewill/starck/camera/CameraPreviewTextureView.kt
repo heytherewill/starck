@@ -19,7 +19,8 @@ class CameraPreviewTextureView @JvmOverloads constructor(
         onSurfaceTextureSizeChanged: (width: Int, height: Int) -> Unit
     ) {
 
-        surfaceTextureListener = CameraPreviewTextureListener(onSurfaceTextureAvailable, onSurfaceTextureSizeChanged)
+        surfaceTextureListener =
+            CameraPreviewTextureListener(onSurfaceTextureAvailable, onSurfaceTextureSizeChanged)
 
     }
 
