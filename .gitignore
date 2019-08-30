@@ -217,4 +217,7 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 
+# NDK
+**/.cxx
+
 # End of https://www.gitignore.io/api/kotlin,android,androidstudio

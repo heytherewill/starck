@@ -12,6 +12,10 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            ldLibs = [ "android", "jnigraphics" ]
+        }
     }
     buildTypes {
         release {
@@ -22,6 +26,11 @@ android {
     compileOptions {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
+    }
+    externalNativeBuild {
+        cmake {
+            path file('CMakeLists.txt')
+        }
     }
     kotlinOptions {
         jvmTarget = "1.8"
