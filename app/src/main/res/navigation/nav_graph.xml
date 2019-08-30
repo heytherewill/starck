@@ -13,12 +13,22 @@
         <action
                 android:id="@+id/action_cameraFragment_to_editFragment"
                 app:destination="@id/editFragment"/>
+        <action
+                android:id="@+id/action_cameraFragment_to_processingFragment"
+                app:destination="@id/processingFragment"/>
     </fragment>
 
     <fragment
             android:id="@+id/editFragment"
             android:name="com.heytherewill.starck.edit.EditFragment"
             android:label="EditFragment">
+        <argument android:name="imagesToProcess" app:argType="string[]"/>
+    </fragment>
+
+    <fragment
+            android:id="@+id/processingFragment"
+            android:name="com.heytherewill.starck.processing.ProcessingFragment"
+            android:label="ProcessingFragment">
         <argument android:name="imagesToProcess" app:argType="string[]"/>
     </fragment>
 </navigation>

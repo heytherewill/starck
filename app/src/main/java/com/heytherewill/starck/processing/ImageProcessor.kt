@@ -8,16 +8,12 @@ class ImageProcessor {
         System.loadLibrary("imageprocessor-lib")
     }
 
-    fun stackBitmaps( images: Array<Bitmap>) : Bitmap {
-
-        val stackedImage = images.first().run {
-            Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    fun stackBitmaps( images: Array<Bitmap>) : Bitmap =
+        images.first().run {
+            val stackedImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            stackBitmaps(stackedImage, images)
+            stackedImage
         }
-
-        stackBitmaps(stackedImage, images)
-
-        return stackedImage
-    }
 
     private external fun stackBitmaps(stack: Bitmap, bitmaps: Array<Bitmap>)
 }

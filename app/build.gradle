@@ -14,7 +14,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
-            ldLibs = [ "android", "jnigraphics" ]
+            ldLibs = ["android", "jnigraphics"]
         }
     }
     buildTypes {

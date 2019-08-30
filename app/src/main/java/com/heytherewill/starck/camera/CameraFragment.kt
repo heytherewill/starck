@@ -135,13 +135,13 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
 
     private fun onCaptureFinished() {
 
-        val editFragmentDirections = CameraFragmentDirections
-            .actionCameraFragmentToEditFragment(sessionUrls.toTypedArray())
+        val processingArgs = CameraFragmentDirections
+            .actionCameraFragmentToProcessingFragment(sessionUrls.toTypedArray())
 
         sessionUrls.clear()
 
         Navigation.findNavController(requireActivity(), R.id.fragment_container)
-            .navigate(editFragmentDirections)
+            .navigate(processingArgs)
     }
 
     private val sessionUrls = mutableListOf<String>()

@@ -5,4 +5,8 @@
     <string name="formatted_integer_seconds">%1$ds</string>
     <string name="f_number">f/1$d</string>
     <string name="dimming_screen_message">Dimming the screen to save power</string>
+    <string name="share">share</string>
+    <string name="stacked_image">Stacked image</string>
+    <string name="processing_images">Processing Images</string>
+    <string name="send_to">Send to</string>
 </resources>
