@@ -19,7 +19,7 @@ class CameraViewModel : ViewModel() {
             3500000000,
             4000000000
         )
-    private val numberOfPicturesList = (2..8).toList()
+    private val numberOfPicturesList = (2..50).toList()
     private val timeList = listOf(0, 1, 3, 5, 10)
 
     private val _sensorSensitivity = MutableLiveData<Int>()
