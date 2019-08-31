@@ -140,7 +140,7 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
 
         sessionUrls.clear()
 
-        Navigation.findNavController(requireActivity(), R.id.fragment_container)
+        Navigation.findNavController(requireActivity(), R.id.fragmentContainer)
             .navigate(processingArgs)
     }
 
