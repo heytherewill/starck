@@ -1,10 +1,7 @@
 package com.heytherewill.starck.camera
 
 import android.content.res.Configuration
-import android.graphics.BitmapFactory
-import android.media.Image
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,7 +36,7 @@ class CameraFragment : Fragment() {
         cameraController = CameraController(cameraPreview)
 
         viewModel.cameraConfiguration.observe(this, Observer {
-            GlobalScope.launch { cameraController.reloadPreview(it) }
+            cameraController.reloadPreview(it)
         })
 
         cameraShutter.setOnClickListener {
@@ -49,29 +46,7 @@ class CameraFragment : Fragment() {
             captureInProgressOverlay.showWithCircularReveal(cameraShutter) {
                 captureInProgressWarning.isVisible = true
 
-                GlobalScope.launch {
-                    val numberOfPictures = viewModel.numberOfPictures.value ?: 2
-
-                    val imageUrls = mutableListOf<String>()
-
-                    for (i in 1..numberOfPictures) {
-                        val image =
-                            withContext(Dispatchers.Default) { cameraController.takePicture() }
-                                ?: return@launch
-
-                        val imageUrl = saveImage(image)
-                        image.close()
-                        imageUrls.add(imageUrl)
-                    }
-
-                    cameraController.resumePreview()
-
-                    val processingArgs = CameraFragmentDirections
-                        .actionCameraFragmentToProcessingFragment(imageUrls.toTypedArray())
-
-                    Navigation.findNavController(requireActivity(), R.id.fragmentContainer)
-                        .navigate(processingArgs)
-                }
+                GlobalScope.launch { takeManyPictures() }
             }
         }
 
@@ -91,13 +66,9 @@ class CameraFragment : Fragment() {
         if (cameraPreview.isAvailable) {
             openCameraIfPossible()
         } else {
-            cameraPreview.setupListener(
-                this::openCameraIfPossible
-            ) { width: Int, height: Int ->
-                cameraController.configureTransform(
-                    requireActivity().windowManager.defaultDisplay.rotation, width, height
-                )
-            }
+
+
+            cameraPreview.setupListener(this::openCameraIfPossible, this::configureTransform)
         }
 
         cameraShutter.startImmersiveMode()
@@ -116,6 +87,33 @@ class CameraFragment : Fragment() {
             cameraPreview.measuredWidth,
             cameraPreview.measuredHeight
         )
+    }
+
+    private fun configureTransform(width: Int, height: Int) {
+        val rotation = requireActivity().windowManager.defaultDisplay.rotation
+        cameraController.configureTransform(rotation, width, height)
+    }
+
+    private suspend fun takeManyPictures() {
+        val imageUrls = mutableListOf<String>()
+        val numberOfPictures = viewModel.numberOfPictures.value ?: 2
+
+        for (i in 1..numberOfPictures) {
+            val image =
+                withContext(Dispatchers.Default) { cameraController.takePicture() } ?: return
+
+            val imageUrl = saveImageToGallery(image)
+            image.close()
+            imageUrls.add(imageUrl)
+        }
+
+        cameraController.resumePreview()
+
+        Navigation.findNavController(requireActivity(), R.id.fragmentContainer)
+            .navigate(
+                CameraFragmentDirections
+                    .actionCameraFragmentToProcessingFragment(imageUrls.toTypedArray())
+            )
     }
 
     private fun openCameraIfPossible() {
@@ -138,21 +136,5 @@ class CameraFragment : Fragment() {
             viewModel.setShutterSpeedRange(openedCameraCharacteristics.validShutterSpeeds)
             viewModel.setSensorSensitivityRange(openedCameraCharacteristics.validSensorSensitivities)
         }
-    }
-
-    private fun saveImage(image: Image): String {
-        val activity = requireActivity()
-
-        val buffer = image.planes[0].buffer
-        val bytes = ByteArray(buffer.capacity())
-        buffer.get(bytes)
-        val bitmapImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
-
-        return MediaStore.Images.Media.insertImage(
-            activity.contentResolver,
-            bitmapImage,
-            "Image Stack",
-            "Created with Starck"
-        )
     }
 }

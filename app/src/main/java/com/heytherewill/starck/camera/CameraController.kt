@@ -220,7 +220,7 @@ class CameraController(private val textureView: CameraPreviewTextureView) {
                 val captureBuilder =
                     camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE).apply {
                         addTarget(surface)
-                        prepareRequestBuilder( false)
+                        prepareRequestBuilder(false)
                     }
 
                 captureSession.capture(
