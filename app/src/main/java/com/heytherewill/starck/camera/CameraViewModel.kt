@@ -2,6 +2,7 @@ package com.heytherewill.starck.camera
 
 import android.util.Range
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
@@ -22,14 +23,27 @@ class CameraViewModel : ViewModel() {
     private val numberOfPicturesList = (2..50).toList()
     private val timeList = listOf(0, 1, 3, 5, 10)
 
-    private val _sensorSensitivity = MutableLiveData<Int>()
-    val sensorSensitivity: LiveData<Int> get() = _sensorSensitivity
+    private val aperture = MutableLiveData<Float>()
+    private val shutterSpeed = MutableLiveData<Long>()
+    private val sensorSensitivity = MutableLiveData<Int>()
 
-    private val _shutterSpeed = MutableLiveData<Long>()
-    val shutterSpeed: LiveData<Long> get() = _shutterSpeed
+    val cameraConfiguration: LiveData<CameraConfiguration> by lazy {
+        val mediatorLiveData = MediatorLiveData<CameraConfiguration>()
 
-    private val _aperture = MutableLiveData<Float>()
-    val aperture: LiveData<Float> get() = _aperture
+        mediatorLiveData.value = CameraConfiguration.empty
+
+        mediatorLiveData.addSource(aperture) {
+            mediatorLiveData.value = mediatorLiveData.value?.copy(aperture = it)
+        }
+        mediatorLiveData.addSource(shutterSpeed) {
+            mediatorLiveData.value = mediatorLiveData.value?.copy(shutterSpeed = it)
+        }
+        mediatorLiveData.addSource(sensorSensitivity) {
+            mediatorLiveData.value = mediatorLiveData.value?.copy(sensorSensitivity = it)
+        }
+
+        mediatorLiveData
+    }
 
     private val _numberOfPictures = MutableLiveData<Int>().apply { value = 2 }
     val numberOfPictures: LiveData<Int> get() = _numberOfPictures
@@ -59,9 +73,9 @@ class CameraViewModel : ViewModel() {
         if (validSensorSensitivities.isEmpty())
             return
 
-        val currentSensorSensitivity = _sensorSensitivity.value ?: -1
+        val currentSensorSensitivity = sensorSensitivity.value ?: -1
         if (!validSensorSensitivities.contains(currentSensorSensitivity)) {
-            _sensorSensitivity.value = validSensorSensitivities.min()
+            sensorSensitivity.value = validSensorSensitivities.min()
         }
     }
 
@@ -73,9 +87,9 @@ class CameraViewModel : ViewModel() {
         if (validShutterSpeeds.isEmpty())
             return
 
-        val currentShutterSpeed = _shutterSpeed.value ?: -1
+        val currentShutterSpeed = shutterSpeed.value ?: -1
         if (!validShutterSpeeds.contains(currentShutterSpeed)) {
-            _shutterSpeed.value = validShutterSpeeds.min()
+            shutterSpeed.value = validShutterSpeeds.min()
         }
     }
 
@@ -85,9 +99,9 @@ class CameraViewModel : ViewModel() {
         if (apertures.isEmpty())
             return
 
-        val currentAperture = _aperture.value ?: -1F
+        val currentAperture = aperture.value ?: -1F
         if (!apertures.contains(currentAperture)) {
-            _aperture.value = apertures.min()
+            aperture.value = apertures.min()
         }
     }
 
@@ -96,14 +110,14 @@ class CameraViewModel : ViewModel() {
         if (!validSensitivities.contains(sensorSensitivity))
             return
 
-        _sensorSensitivity.value = sensorSensitivity
+        this.sensorSensitivity.value = sensorSensitivity
     }
 
     fun setShutterSpeed(shutterSpeed: Long) {
         if (!shutterSpeedList.contains(shutterSpeed))
             return
 
-        _shutterSpeed.value = shutterSpeed
+        this.shutterSpeed.value = shutterSpeed
     }
 
     fun setAperture(aperture: Float) {
@@ -111,8 +125,7 @@ class CameraViewModel : ViewModel() {
         if (!validApertures.contains(aperture))
             return
 
-        _aperture.value = aperture
-
+        this.aperture.value = aperture
     }
 
     fun setNumberOfPictures(numberOfPictures: Int) {
@@ -127,5 +140,15 @@ class CameraViewModel : ViewModel() {
             return
 
         _timerDelay.value = timer
+    }
+
+    data class CameraConfiguration(
+        val aperture: Float,
+        val shutterSpeed: Long,
+        val sensorSensitivity: Int
+    ) {
+        companion object {
+            val empty = CameraConfiguration(0F, 0, 0)
+        }
     }
 }

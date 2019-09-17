@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import android.media.Image
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Range
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,13 +14,11 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.Navigation
 import com.heytherewill.starck.R
-import com.heytherewill.starck.extensions.checkCameraPermission
-import com.heytherewill.starck.extensions.requestCameraPermission
-import com.heytherewill.starck.extensions.showWithCircularReveal
-import com.heytherewill.starck.extensions.startImmersiveMode
+import com.heytherewill.starck.extensions.*
 import kotlinx.android.synthetic.main.fragment_camera.*
+import kotlinx.coroutines.*
 
-class CameraFragment : Fragment(), CameraController.CameraControllerListener {
+class CameraFragment : Fragment() {
 
     private lateinit var viewModel: CameraViewModel
     private lateinit var cameraController: CameraController
@@ -39,16 +36,11 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         val activity = requireActivity()
 
         viewModel = ViewModelProviders.of(activity).get(CameraViewModel::class.java)
-        cameraController = CameraController(activity, this, cameraPreview)
+        cameraController = CameraController(cameraPreview)
 
-        viewModel.aperture.observe(this, Observer { cameraController.aperture = it })
-        viewModel.shutterSpeed.observe(this, Observer { cameraController.shutterSpeed = it })
-        viewModel.sensorSensitivity.observe(
-            this,
-            Observer { cameraController.sensorSensitivity = it })
-        viewModel.numberOfPictures.observe(
-            this,
-            Observer { cameraController.numberOfPictures = it })
+        viewModel.cameraConfiguration.observe(this, Observer {
+            GlobalScope.launch { cameraController.reloadPreview(it) }
+        })
 
         cameraShutter.setOnClickListener {
 
@@ -56,14 +48,36 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
             cameraShutter.isEnabled = false
             captureInProgressOverlay.showWithCircularReveal(cameraShutter) {
                 captureInProgressWarning.isVisible = true
-                cameraController.takePicture()
+
+                GlobalScope.launch {
+                    val numberOfPictures = viewModel.numberOfPictures.value ?: 2
+
+                    val imageUrls = mutableListOf<String>()
+
+                    for (i in 1..numberOfPictures) {
+                        val image =
+                            withContext(Dispatchers.Default) { cameraController.takePicture() }
+                                ?: return@launch
+
+                        val imageUrl = saveImage(image)
+                        image.close()
+                        imageUrls.add(imageUrl)
+                    }
+
+                    cameraController.resumePreview()
+
+                    val processingArgs = CameraFragmentDirections
+                        .actionCameraFragmentToProcessingFragment(imageUrls.toTypedArray())
+
+                    Navigation.findNavController(requireActivity(), R.id.fragmentContainer)
+                        .navigate(processingArgs)
+                }
             }
         }
 
-        val settingsViewHeight = lazy {
+        shutterControls.setupSlidingTouchListener(0, lazy {
             childFragmentManager.findFragmentById(R.id.cameraSettings)?.view?.height ?: 0
-        }
-        shutterControls.setupSlidingTouchListener(0, settingsViewHeight)
+        })
     }
 
     override fun onResume() {
@@ -78,9 +92,12 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
             openCameraIfPossible()
         } else {
             cameraPreview.setupListener(
-                this::openCameraIfPossible,
-                cameraController::configureTransform
-            )
+                this::openCameraIfPossible
+            ) { width: Int, height: Int ->
+                cameraController.configureTransform(
+                    requireActivity().windowManager.defaultDisplay.rotation, width, height
+                )
+            }
         }
 
         cameraShutter.startImmersiveMode()
@@ -95,6 +112,7 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
         super.onConfigurationChanged(newConfig)
 
         cameraController.configureTransform(
+            requireActivity().windowManager.defaultDisplay.rotation,
             cameraPreview.measuredWidth,
             cameraPreview.measuredHeight
         )
@@ -108,51 +126,33 @@ class CameraFragment : Fragment(), CameraController.CameraControllerListener {
             return
         }
 
-        cameraController.openCamera()
+        MainScope().launch {
+
+            val openedCameraCharacteristics = cameraController.openCamera(requireActivity())
+            if (openedCameraCharacteristics == null) {
+                activity.finish()
+                return@launch
+            }
+
+            viewModel.setApertureRange(openedCameraCharacteristics.validApertures)
+            viewModel.setShutterSpeedRange(openedCameraCharacteristics.validShutterSpeeds)
+            viewModel.setSensorSensitivityRange(openedCameraCharacteristics.validSensorSensitivities)
+        }
     }
 
-    override fun onImageTaken(image: Image) {
-        val activity = activity ?: return
+    private fun saveImage(image: Image): String {
+        val activity = requireActivity()
 
         val buffer = image.planes[0].buffer
         val bytes = ByteArray(buffer.capacity())
         buffer.get(bytes)
         val bitmapImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
-        val imageUrl = MediaStore.Images.Media.insertImage(
+
+        return MediaStore.Images.Media.insertImage(
             activity.contentResolver,
             bitmapImage,
             "Image Stack",
             "Created with Starck"
         )
-
-        sessionUrls.add(imageUrl)
-
-        if (sessionUrls.size < viewModel.numberOfPictures.value ?: 2)
-            return
-
-        onCaptureFinished()
-    }
-
-    private fun onCaptureFinished() {
-
-        val processingArgs = CameraFragmentDirections
-            .actionCameraFragmentToProcessingFragment(sessionUrls.toTypedArray())
-
-        sessionUrls.clear()
-
-        Navigation.findNavController(requireActivity(), R.id.fragmentContainer)
-            .navigate(processingArgs)
-    }
-
-    private val sessionUrls = mutableListOf<String>()
-
-    override fun onCameraCharacteristicsInitialized(
-        sensitivityRange: Range<Int>,
-        shutterSpeedRange: Range<Long>,
-        validApertures: FloatArray
-    ) {
-        viewModel.setShutterSpeedRange(shutterSpeedRange)
-        viewModel.setSensorSensitivityRange(sensitivityRange)
-        viewModel.setApertureRange(validApertures)
     }
 }

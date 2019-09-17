@@ -1,5 +1,6 @@
 package com.heytherewill.starck.extensions
 
+import android.graphics.Point
 import android.util.SparseIntArray
 import android.view.Display
 import android.view.Surface
@@ -17,3 +18,6 @@ private val orientations = lazy {
 val Display.deviceOrientation: Int
     get() =
         orientations.value.get(rotation)
+
+val Display.size: Point
+    get() = Point().apply { getSize(this) }
